@@ -1,0 +1,19 @@
+name: custom_paint_diagram_layer
+description: A Flutter package for creating custom diagram layers using CustomPaint
+version: 0.0.1
+homepage: https://github.com/zartyblartfast/custom_paint_diagram_layer
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:

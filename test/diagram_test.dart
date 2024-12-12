@@ -177,4 +177,48 @@ void main() {
 
     expect(diagram1, equals(diagram2));
   });
+
+  test('addElement adds element to diagram', () {
+    final diagram = Diagram(coordinateSystem: coordinateSystem);
+    final element = MockDrawableElement(
+      x: 0,
+      y: 0,
+      color: Colors.red,
+      renderCalls: [],
+    );
+
+    diagram.addElement(element);
+    expect(diagram.elements, contains(element));
+    expect(diagram.elements.length, equals(1));
+  });
+
+  test('removeElement removes element from diagram', () {
+    final element = MockDrawableElement(
+      x: 0,
+      y: 0,
+      color: Colors.red,
+      renderCalls: [],
+    );
+
+    final diagram = Diagram(
+      coordinateSystem: coordinateSystem,
+      elements: [element],
+    );
+
+    diagram.removeElement(element);
+    expect(diagram.elements, isEmpty);
+  });
+
+  test('toggleAxes toggles showAxes property', () {
+    final diagram = Diagram(
+      coordinateSystem: coordinateSystem,
+      showAxes: true,
+    );
+
+    expect(diagram.showAxes, isTrue);
+    diagram.toggleAxes();
+    expect(diagram.showAxes, isFalse);
+    diagram.toggleAxes();
+    expect(diagram.showAxes, isTrue);
+  });
 }

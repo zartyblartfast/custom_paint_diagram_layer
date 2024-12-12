@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 
 /// A coordinate system that handles transformations between app-space and diagram-space coordinates.
 ///
-/// The coordinate system manages:
-/// * Origin placement in canvas space
-/// * X and Y axis ranges in diagram space
-/// * Scaling between diagram and canvas space
+/// The coordinate system is responsible for:
+/// * Managing the mapping between app-space values and diagram-space coordinates
+/// * Maintaining the origin point in canvas space
+/// * Handling scaling between coordinate spaces
+/// * Ensuring proper centering of the diagram
+///
+/// Key concepts:
+/// * App-space: The logical coordinate space of your application's data
+/// * Diagram-space: The physical pixel space where the diagram is rendered
+/// * Origin: The reference point for coordinate transformations
+/// * Scale: The factor that converts between app-space and diagram-space units
 ///
 /// Example:
 /// ```dart
@@ -17,7 +24,13 @@ import 'package:flutter/material.dart';
 ///   yRangeMax: 100,
 ///   scale: 2.0,
 /// );
+///
+/// // Map a point from app-space to diagram-space
+/// final diagramPoint = coordSystem.mapValueToDiagram(25, 75);
 /// ```
+///
+/// Note: The coordinate system assumes Y-axis grows upward in diagram space,
+/// which is the opposite of Flutter's default coordinate system.
 class CoordinateSystem {
   /// The origin point in canvas space
   final Offset origin;
@@ -53,6 +66,25 @@ class CoordinateSystem {
        assert(yRangeMax > yRangeMin, 'yRangeMax must be greater than yRangeMin'),
        assert(scale > 0, 'Scale must be greater than zero');
 
+  /// Creates a new CoordinateSystem with some properties updated.
+  CoordinateSystem copyWith({
+    Offset? origin,
+    double? xRangeMin,
+    double? xRangeMax,
+    double? yRangeMin,
+    double? yRangeMax,
+    double? scale,
+  }) {
+    return CoordinateSystem(
+      origin: origin ?? this.origin,
+      xRangeMin: xRangeMin ?? this.xRangeMin,
+      xRangeMax: xRangeMax ?? this.xRangeMax,
+      yRangeMin: yRangeMin ?? this.yRangeMin,
+      yRangeMax: yRangeMax ?? this.yRangeMax,
+      scale: scale ?? this.scale,
+    );
+  }
+
   /// Transforms app-level coordinates to diagram space coordinates.
   ///
   /// Example:
@@ -62,11 +94,17 @@ class CoordinateSystem {
   /// // point will be Offset(200, 50)
   /// ```
   Offset mapValueToDiagram(double x, double y) {
-    // X-axis: transform from range to centered coordinates
-    double diagramX = origin.dx + (x - xRangeMin) * scale;
+    // Calculate the total ranges
+    final xRange = xRangeMax - xRangeMin;
+    final yRange = yRangeMax - yRangeMin;
     
-    // Y-axis: transform from range to bottom-up coordinates
-    double diagramY = origin.dy - (y - yRangeMin) * scale;
+    // Calculate the scaled distances from the minimum values
+    final scaledX = (x - xRangeMin) * scale;
+    final scaledY = (y - yRangeMin) * scale;
+    
+    // Center the coordinates relative to the origin
+    double diagramX = origin.dx - (xRange * scale / 2) + scaledX;
+    double diagramY = origin.dy + (yRange * scale / 2) - scaledY;
     
     return Offset(diagramX, diagramY);
   }
@@ -88,4 +126,26 @@ class CoordinateSystem {
     
     return Offset(appX, appY);
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CoordinateSystem &&
+           other.origin == origin &&
+           other.xRangeMin == xRangeMin &&
+           other.xRangeMax == xRangeMax &&
+           other.yRangeMin == yRangeMin &&
+           other.yRangeMax == yRangeMax &&
+           other.scale == scale;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    origin,
+    xRangeMin,
+    xRangeMax,
+    yRangeMin,
+    yRangeMax,
+    scale,
+  );
 }

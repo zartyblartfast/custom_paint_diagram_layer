@@ -4,7 +4,7 @@
 **Goal:** Build and validate foundational classes for coordinate transformations and drawable elements.
 
 ### 1. CoordinateSystem
-**Purpose:** Handles all coordinate transformations, scaling, and origin placement.
+**Purpose:** Handles coordinate transformations with proper centering and scaling.
 
 **Steps:**
 1. Define properties:
@@ -13,223 +13,153 @@
    - `yRangeMin: double`, `yRangeMax: double`
    - `scale: double`
 
-2. Implement methods:
+2. Implement coordinate transformation methods:
    - `mapValueToDiagram(x: double, y: double): Offset`
+     * Calculate total ranges for proper centering
+     * Apply scale transformation
+     * Adjust for origin offset
    - `mapDiagramToValue(x: double, y: double): Offset`
+     * Implement inverse transformation
+   - `copyWith({...}): CoordinateSystem`
 
-3. Write unit tests to validate:
-   - Correct mapping of app values to diagram coordinates
-   - Handling of edge cases (e.g., negative scales, shifted origins)
+3. Write comprehensive unit tests:
+   - Verify correct centering behavior
+   - Test scale transformations
+   - Validate origin offset calculations
+   - Check edge cases (negative ranges, zero scale)
+   - Verify Y-axis direction consistency
 
-**Expected Output:** A functional CoordinateSystem class with accurate transformation methods.  
+**Expected Output:** A robust CoordinateSystem class with accurate transformations.  
 **Dependencies:** None
 
 ### 2. DrawableElement (Abstract Class)
-**Purpose:** Represents a drawable element in the diagram.
+**Purpose:** Base class for all drawable elements.
 
 **Steps:**
-1. Define abstract properties:
+1. Define immutable properties:
    - `x: double`, `y: double`, `color: Color`
 
-2. Define an abstract method:
+2. Define render method contract:
    - `render(canvas: Canvas, coordinateSystem: CoordinateSystem): void`
+   - Document transformation requirements
 
-3. Write a test stub to ensure all subclasses implement the render method
+3. Create test utilities:
+   - Mock canvas for render verification
+   - Test helpers for coordinate validation
 
-**Expected Output:** A base class that standardizes drawable elements.  
+**Expected Output:** A well-documented base class for elements.  
 **Dependencies:** `CoordinateSystem`
 
-### 3. Display Coordinate System and Scale
-**Purpose:** Add a visual representation of the coordinate system to validate layout and scaling early.
+### 3. CanvasAlignment
+**Purpose:** Manages atomic updates to coordinate system alignment and scale.
 
 **Steps:**
-1. Extend the Diagram class:
-   - Add `showAxes` property to toggle axes visibility
-   - Implement `_renderAxes` method for axes and scale markings
-   - Update CustomPaintRenderer to include axes rendering
+1. Create CanvasAlignment class:
+   - Properties:
+     - `canvasSize: Size`
+     - `coordinateSystem: CoordinateSystem`
+   
+   - Core methods:
+     - `alignCenter(): void` – Atomic update of origin and scale
+     - `alignBottomCenter(): void` – Atomic update for bottom alignment
 
-2. Create a simple test diagram:
-   - Configure a Diagram with a CoordinateSystem
-   - Display axes and scale markings
+2. Write comprehensive tests:
+   - Verify atomic updates
+   - Test different canvas sizes
+   - Validate scale calculations
+   - Check alignment consistency
 
-3. Write tests to validate:
-   - Correct alignment of axes with coordinate system
-   - Accuracy of scale markings
-
-**Expected Output:** A diagram with visible axes and scale markings for early verification.  
+**Expected Output:** Reliable alignment management class.  
 **Dependencies:** `CoordinateSystem`
 
-### 4. LineElement
-**Purpose:** Represents a line in the diagram.
+### 4. Axis Elements
+**Purpose:** Implement accurate axis rendering with proper positioning.
 
 **Steps:**
-1. Define properties:
-   - `x1: double`, `y1: double` (start point)
-   - `x2: double`, `y2: double` (end point)
+1. Implement XAxisElement:
+   - Properties: `yValue`, `tickInterval`
+   - Methods:
+     * Render with proper transformations
+     * Draw ticks and labels
+     * Handle scale-dependent visibility
 
-2. Implement the render method using:
-   - The `Canvas.drawLine` method
-   - Coordinate transformations via CoordinateSystem
+2. Implement YAxisElement:
+   - Properties: `xValue`, `tickInterval`
+   - Methods:
+     * Render with proper transformations
+     * Draw ticks and labels
+     * Handle scale-dependent visibility
 
-3. Write tests to validate:
-   - Correct rendering at various positions and scales
+3. Write focused tests:
+   - Verify tick positioning
+   - Test label rendering
+   - Validate scale handling
 
-**Expected Output:** A LineElement class that accurately renders lines.  
+**Expected Output:** Accurate and consistent axis elements.  
 **Dependencies:** `DrawableElement`, `CoordinateSystem`
 
-### 5. RectangleElement
-**Purpose:** Represents a rectangle in the diagram.
+## Phase 2: Integration and State Management
+**Goal:** Implement immutable state management and proper rendering integration.
+
+### 1. Diagram Integration
+**Purpose:** Manage immutable element collection and coordinate transformations.
 
 **Steps:**
-1. Define properties:
-   - `x: double`, `y: double` (top-left corner)
-   - `width: double`, `height: double` (dimensions)
+1. Implement Diagram class:
+   - Immutable element collection
+   - Atomic state updates:
+     * `addElement(): Diagram`
+     * `removeElement(): Diagram`
+     * `toggleAxes(): Diagram`
+   - Proper render delegation
 
-2. Implement the render method using:
-   - The `Canvas.drawRect` method
-   - Coordinate transformations via CoordinateSystem
+2. Write integration tests:
+   - Verify immutability
+   - Test state transitions
+   - Validate render coordination
 
-3. Write tests to validate:
-   - Correct position and dimensions under various configurations
+**Expected Output:** Thread-safe diagram management.  
+**Dependencies:** All previous components
 
-**Expected Output:** A RectangleElement class that renders rectangles properly.  
-**Dependencies:** `DrawableElement`, `CoordinateSystem`
-
-### 6. TextElement
-**Purpose:** Represents a text label in the diagram.
-
-**Steps:**
-1. Define properties:
-   - `x: double`, `y: double` (position)
-   - `text: String` (content)
-
-2. Implement the render method using:
-   - The `Canvas.drawText` method
-   - Coordinate transformations via CoordinateSystem
-
-3. Write tests to validate:
-   - Proper alignment and rendering of text
-
-**Expected Output:** A TextElement class for rendering text labels.  
-**Dependencies:** `DrawableElement`, `CoordinateSystem`
-
-## Phase 2: Diagram and Rendering
-**Goal:** Combine elements into a managed collection and render them.
-
-### 7. Diagram
-**Purpose:** Manages a collection of elements and interacts with the coordinate system.
+### 2. CustomPaintRenderer
+**Purpose:** Bridge Flutter's CustomPaint with diagram layer.
 
 **Steps:**
-1. Define properties:
-   - `elements: List<DrawableElement>`
-   - `coordinateSystem: CoordinateSystem`
-   - `showAxes: bool`
+1. Implement CustomPainter:
+   - Proper paint delegation
+   - Efficient repaint logic
+   - Size change handling
 
-2. Implement methods:
-   - `addElement(element: DrawableElement): void`
-   - `removeElement(element: DrawableElement): void`
-   - `toggleAxes(): void`
+2. Write performance tests:
+   - Measure render times
+   - Test repaint optimization
+   - Validate size updates
 
-3. Write tests to validate:
-   - Adding/removing elements dynamically
-   - Correctly toggling axes visibility
+**Expected Output:** Efficient Flutter integration.  
+**Dependencies:** `Diagram`
 
-**Expected Output:** A Diagram class that manages elements and supports debugging tools.  
-**Dependencies:** `DrawableElement`, `CoordinateSystem`
+## Phase 3: Testing and Optimization
+**Goal:** Ensure reliability and performance.
 
-### 8. CustomPaintRenderer
-**Purpose:** Renders the diagram using Flutter's CustomPaint.
+### 1. Integration Testing
+**Focus Areas:**
+1. State transitions
+2. Coordinate transformations
+3. Render performance
+4. Memory usage
 
-**Steps:**
-1. Implement the render method:
-   - Iterate through DrawableElement instances
-   - Call render for each element with Canvas and CoordinateSystem
+### 2. Edge Cases
+**Test Scenarios:**
+1. Dynamic canvas sizes
+2. Extreme coordinate ranges
+3. Multiple rapid updates
+4. Concurrent modifications
 
-2. Include debugging tools:
-   - Draw axes and gridlines when showAxes is true
+### 3. Performance Optimization
+**Areas:**
+1. Render caching
+2. Transform optimization
+3. State update efficiency
+4. Memory management
 
-3. Write tests to validate:
-   - Integration with the Diagram class
-   - Correct rendering of elements and debugging tools
-
-**Expected Output:** A CustomPaintRenderer class that renders the diagram.  
-**Dependencies:** `Diagram`, `DrawableElement`
-
-## Phase 3: Debugging Features
-**Goal:** Add visual debugging tools to verify coordinate systems and element placement.
-
-### Known Issues to Address in Phase 3
-
-### Coordinate System and Axes Alignment
-1. **X-Axis Horizontal Centering**
-   - Current Issue: X-axis appears off-center to the right of the diagram
-   - Root Cause: Direct canvas drawing bypassing proper coordinate system transformations
-   - To Fix: Implement proper drawable elements for axes using the diagram layer abstractions
-
-2. **Axis Rendering Implementation**
-   - Current Issue: Axes are drawn directly using canvas commands instead of using drawable elements
-   - Impact: Bypasses the diagram layer's coordinate system abstractions
-   - To Fix: Create dedicated drawable elements for axes, ticks, and labels
-
-3. **Debug Validation**
-   - Need visual tools to verify:
-     - Origin point placement (canvas.width/2, canvas.height)
-     - X-axis horizontal alignment
-     - Y-axis vertical alignment from origin
-     - Scale accuracy at different canvas dimensions
-
-These issues will be addressed systematically in Phase 3's "Axes and Gridlines" implementation.
-
-### 9. Axes and Gridlines
-**Purpose:** Provide visual confirmation of coordinate system and element alignment.
-
-**Steps:**
-1. Extend the Diagram class:
-   - Add toggles for axes and gridlines
-
-2. Implement rendering logic:
-   - Draw X and Y axes based on CoordinateSystem
-   - Add optional gridlines at defined intervals
-
-3. Write tests to validate:
-   - Axes and gridlines appear correctly
-
-**Expected Output:** Debugging tools integrated into the diagram.  
-**Dependencies:** `Diagram`, `CustomPaintRenderer`
-
-## Phase 4: Testing and Edge Cases
-**Goal:** Ensure robustness and correctness.
-
-### 10. Unit Tests
-**Purpose:** Validate each class in isolation.
-
-**Steps:**
-1. Write tests for:
-   - CoordinateSystem: Edge case mapping
-   - DrawableElement subclasses: Rendering behavior
-   - Diagram: Element management and features
-
-**Expected Output:** Unit-tested core components with reliable behavior.
-
-### 11. Integration Tests
-**Purpose:** Test class interactions.
-
-**Steps:**
-1. Create sample diagram with multiple elements
-2. Render using CustomPaintRenderer
-3. Validate rendering and debugging tools
-
-**Expected Output:** A fully functional and tested diagram system.
-
-### 12. Edge Cases
-**Purpose:** Ensure robustness with unusual configurations.
-
-**Steps:**
-1. Test with:
-   - Negative axis ranges
-   - Extreme scales
-   - Invalid properties
-
-2. Validate error handling and documentation
-
-**Expected Output:** A robust framework handling edge cases gracefully.
+**Expected Output:** Production-ready diagram system.

@@ -108,12 +108,31 @@ To update to a newer version:
 
 If you encounter issues:
 
-1. Ensure you have the correct URL and ref in pubspec.yaml
-2. Try cleaning your Flutter project:
+1. Import Issues
+   - If using the basic import doesn't work:
+     ```dart
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
+     ```
+   - You may need these explicit imports:
+     ```dart
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/line_element.dart';
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/rectangle_element.dart';
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/text_element.dart';
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/axis_element.dart';
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/coordinate_system.dart';
+     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/custom_paint_renderer.dart';
+     ```
+
+2. Dependency Cache Issues
+   If changes aren't being picked up:
    ```bash
    flutter clean
+   flutter pub cache clean
    flutter pub get
    ```
+
 3. Check that your Flutter SDK version meets the requirements
 4. Verify network access to GitHub
 

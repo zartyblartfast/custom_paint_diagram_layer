@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 
 void main() {
   test('DrawableElement is abstract and requires render implementation', () {

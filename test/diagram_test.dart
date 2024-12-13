@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
-import 'package:collection/collection.dart';
 
 class MockDrawableElement implements DrawableElement {
   final List<bool> renderCalls;

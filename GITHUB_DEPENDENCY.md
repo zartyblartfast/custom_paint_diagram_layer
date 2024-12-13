@@ -1,42 +1,111 @@
 # Using This Package as a GitHub Dependency
 
-To use this package directly from GitHub in your Flutter project, add it to your `pubspec.yaml` dependencies section using the following format:
+This document explains how to use the custom_paint_diagram_layer package directly from GitHub in your Flutter projects.
 
+## Adding the Dependency
+
+Add this package to your `pubspec.yaml` dependencies section using one of the following formats:
+
+### Latest Stable Version (Recommended)
 ```yaml
 dependencies:
   custom_paint_diagram_layer:
     git:
       url: https://github.com/zartyblartfast/custom_paint_diagram_layer.git
-      ref: main  # or use a specific commit hash or tag
+      ref: v0.0.1  # Use the latest tagged version
 ```
 
-## Version Control
-You can specify different versions of the package by using:
-- A specific branch: `ref: branch_name`
-- A commit hash: `ref: commit_hash`
-- A tag: `ref: tag_name`
-
-## Example
-Here's a complete example of how your `pubspec.yaml` might look:
-
+### Latest Development Version
 ```yaml
 dependencies:
-  flutter:
-    sdk: flutter
   custom_paint_diagram_layer:
     git:
       url: https://github.com/zartyblartfast/custom_paint_diagram_layer.git
-      ref: main
+      ref: main    # Use the main branch (may be unstable)
 ```
 
-After adding the dependency, run:
-```bash
-flutter pub get
+### Specific Commit Version
+```yaml
+dependencies:
+  custom_paint_diagram_layer:
+    git:
+      url: https://github.com/zartyblartfast/custom_paint_diagram_layer.git
+      ref: 35e6209  # Use a specific commit hash
 ```
 
-## Importing the Package
-In your Dart code, import the package as:
+## Version Control Reference
+
+You can specify different versions of the package using:
+- **Tags** (e.g., `ref: v0.0.1`): Best for stable releases
+- **Branch names** (e.g., `ref: main`): Best for development
+- **Commit hashes** (e.g., `ref: 35e6209`): Best for specific versions
+
+## Installing the Package
+
+After adding the dependency to your pubspec.yaml:
+
+1. Run Flutter pub get:
+   ```bash
+   flutter pub get
+   ```
+
+2. If you encounter any issues, try:
+   ```bash
+   flutter clean
+   flutter pub get
+   ```
+
+## Using the Package
+
+Import the package in your Dart code:
 
 ```dart
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 ```
+
+## Available Versions
+
+The package follows semantic versioning:
+- v0.0.1: Initial release
+  - Basic diagram layer functionality
+  - Support for lines, rectangles, and text elements
+  - Coordinate system with adjustable axes
+
+## Updating the Package
+
+To update to a newer version:
+
+1. Change the `ref:` in your pubspec.yaml to the desired version
+2. Run `flutter pub get`
+
+## Best Practices
+
+1. **For Production Apps:**
+   - Always use tagged versions (e.g., `ref: v0.0.1`)
+   - Avoid using branch names like `main`
+   - Lock to specific versions for stability
+
+2. **For Development:**
+   - You can use branch names for latest features
+   - Consider using commit hashes for reproducible builds
+   - Test thoroughly when updating versions
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. Ensure you have the correct URL and ref in pubspec.yaml
+2. Try cleaning your Flutter project:
+   ```bash
+   flutter clean
+   flutter pub get
+   ```
+3. Check that your Flutter SDK version meets the requirements
+4. Verify network access to GitHub
+
+## Support
+
+For issues, feature requests, or contributions:
+- Visit our [GitHub repository](https://github.com/zartyblartfast/custom_paint_diagram_layer)
+- Submit issues through the GitHub issue tracker
+- Pull requests are welcome

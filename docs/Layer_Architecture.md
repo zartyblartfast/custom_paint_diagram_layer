@@ -126,6 +126,91 @@ void buildDiagram(Canvas canvas, Size size) {
 }
 ```
 
+## Implementation Considerations
+
+### 1. Coordinate System Integration
+
+The existing `CoordinateSystem` class remains the foundation for both layer types:
+
+```dart
+abstract class IDiagramLayer {
+  CoordinateSystem get coordinateSystem;
+  
+  // Optional method to update coordinate system
+  IDiagramLayer updateCoordinateSystem(CoordinateSystem newSystem);
+}
+```
+
+### 2. Canvas Alignment
+
+Both layer types will use `CanvasAlignment` for consistent behavior:
+
+```dart
+class BasicDiagramLayer implements IDiagramLayer {
+  @override
+  void render(Canvas canvas, Size size) {
+    final alignment = CanvasAlignment(
+      canvasSize: size,
+      coordinateSystem: coordinateSystem,
+    );
+    alignment.alignCenter();
+    // ... render elements
+  }
+}
+
+class StyledDiagramLayer implements IDiagramLayer {
+  @override
+  void render(Canvas canvas, Size size) {
+    final alignment = CanvasAlignment(
+      canvasSize: size,
+      coordinateSystem: coordinateSystem,
+    );
+    alignment.alignCenter();
+    // ... render styled elements
+  }
+}
+```
+
+### 3. Style System Integration
+
+The style system will maintain immutability:
+
+```dart
+class DiagramStyle {
+  final StrokeStyle? stroke;
+  final FillStyle? fill;
+  
+  const DiagramStyle({this.stroke, this.fill});
+  
+  // Immutable updates
+  DiagramStyle copyWith({
+    StrokeStyle? stroke,
+    FillStyle? fill,
+  });
+}
+```
+
+### 4. Z-Index Handling
+
+Z-index will be managed consistently across layers:
+
+```dart
+class DiagramElementManager {
+  // Maintain sorted order during element addition
+  void addElement(DiagramElement element) {
+    _elements.insert(
+      _findInsertionIndex(element.zIndex),
+      element,
+    );
+  }
+  
+  // Ensure consistent ordering during rendering
+  List<DiagramElement> getOrderedElements() {
+    return List.unmodifiable(_elements);
+  }
+}
+```
+
 ## Extension Points
 
 ### 1. New Layer Types

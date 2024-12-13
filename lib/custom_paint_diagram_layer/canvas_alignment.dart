@@ -42,9 +42,8 @@ class CanvasAlignment {
     required CoordinateSystem coordinateSystem,
   }) : coordinateSystem = coordinateSystem.copyWith();
 
-  /// Aligns the CoordinateSystem.origin to the center of the canvas
-  void alignCenter() {
-    // Calculate the scale first
+  /// Updates the scale of the coordinate system based on canvas size and coordinate range
+  void updateScale() {
     final xRange = coordinateSystem.xRangeMax - coordinateSystem.xRangeMin;
     final yRange = coordinateSystem.yRangeMax - coordinateSystem.yRangeMin;
     
@@ -52,6 +51,16 @@ class CanvasAlignment {
     final yScale = canvasSize.height / yRange;
     
     final newScale = xScale.abs() < yScale.abs() ? xScale.abs() : yScale.abs();
+    
+    coordinateSystem = coordinateSystem.copyWith(
+      scale: newScale,
+    );
+  }
+
+  /// Aligns the CoordinateSystem.origin to the center of the canvas
+  void alignCenter() {
+    // Calculate the scale first
+    updateScale();
     
     // Calculate center position
     final center = Offset(
@@ -59,23 +68,16 @@ class CanvasAlignment {
       canvasSize.height / 2,
     );
     
-    // Update both scale and origin together
+    // Update origin
     coordinateSystem = coordinateSystem.copyWith(
       origin: center,
-      scale: newScale,
     );
   }
 
   /// Aligns the CoordinateSystem.origin to the bottom center of the canvas
   void alignBottomCenter() {
     // Calculate the scale first
-    final xRange = coordinateSystem.xRangeMax - coordinateSystem.xRangeMin;
-    final yRange = coordinateSystem.yRangeMax - coordinateSystem.yRangeMin;
-    
-    final xScale = canvasSize.width / xRange;
-    final yScale = canvasSize.height / yRange;
-    
-    final newScale = xScale.abs() < yScale.abs() ? xScale.abs() : yScale.abs();
+    updateScale();
     
     // Calculate bottom center position
     final bottomCenter = Offset(
@@ -83,10 +85,9 @@ class CanvasAlignment {
       canvasSize.height,
     );
     
-    // Update both scale and origin together
+    // Update origin
     coordinateSystem = coordinateSystem.copyWith(
       origin: bottomCenter,
-      scale: newScale,
     );
   }
 }

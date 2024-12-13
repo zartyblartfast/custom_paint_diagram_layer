@@ -40,6 +40,10 @@ class _DiagramWidgetState extends State<DiagramWidget> {
   @override
   void initState() {
     super.initState();
+    _initializeDiagram();
+  }
+
+  void _initializeDiagram() {
     _diagram = Diagram(
       coordinateSystem: CoordinateSystem(
         origin: const Offset(200, 200), // Center of canvas
@@ -59,7 +63,7 @@ class _DiagramWidgetState extends State<DiagramWidget> {
         TextElement(x: -5, y: 5, text: 'topLeft', color: Colors.blue),
       ],
       showAxes: _showAxes,
-    );
+    ).addAxesToDiagram();
   }
 
   @override
@@ -84,7 +88,7 @@ class _DiagramWidgetState extends State<DiagramWidget> {
           onChanged: (bool value) {
             setState(() {
               _showAxes = value;
-              _diagram = _diagram.copyWith(showAxes: value);
+              _diagram = _diagram.toggleAxes();
             });
           },
         ),

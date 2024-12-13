@@ -36,6 +36,9 @@ class _SpringBalanceDiagramState extends State<SpringBalanceDiagram> {
       showAxes: _showAxes,
     );
 
+    // Initialize layer with correct axes state
+    _layer = _layer.toggleAxes().toggleAxes();  // Force sync with _showAxes
+
     // Add initial spring line
     _layer = _layer.addElement(
       LineElement(

@@ -3,7 +3,9 @@ import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/line_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/rectangle_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/text_element.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/axis_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/custom_paint_renderer.dart';
 import 'spring_balance/spring_balance_main.dart';
 
 void main() {
@@ -68,6 +70,13 @@ class _DiagramWidgetState extends State<DiagramWidget> {
       showAxes: _showAxes,
     );
 
+    // Add axes if needed
+    if (_showAxes) {
+      _layer = _layer
+        .addElement(const XAxisElement(yValue: 0))
+        .addElement(const YAxisElement(xValue: 0));
+    }
+
     // Add example elements
     _layer = _layer
       .addElement(
@@ -113,7 +122,19 @@ class _DiagramWidgetState extends State<DiagramWidget> {
           onPressed: () {
             setState(() {
               _showAxes = !_showAxes;
-              _layer = _layer.toggleAxes();
+              if (_showAxes) {
+                _layer = _layer
+                  .addElement(const XAxisElement(yValue: 0))
+                  .addElement(const YAxisElement(xValue: 0));
+              } else {
+                _layer = BasicDiagramLayer(
+                  coordinateSystem: _layer.coordinateSystem,
+                  elements: _layer.elements.where((e) => 
+                    !(e is XAxisElement || e is YAxisElement)
+                  ).toList(),
+                  showAxes: false,
+                );
+              }
             });
           },
           child: Text(_showAxes ? 'Hide Axes' : 'Show Axes'),

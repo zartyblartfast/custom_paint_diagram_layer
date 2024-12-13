@@ -2,15 +2,27 @@ import 'package:flutter/material.dart';
 import '../coordinate_system.dart';
 import '../drawable_element.dart';
 
+/// Enum representing the type of axis
+enum AxisType {
+  /// X-axis
+  x,
+  /// Y-axis
+  y,
+}
+
 /// Base class for axis elements that extends DrawableElement
 abstract class AxisElement extends DrawableElement {
   /// The interval between ticks on the axis
   final double tickInterval;
 
+  /// The type of axis (x or y)
+  final AxisType type;
+
   /// Creates a new axis element
   const AxisElement({
     required super.x,
     required super.y,
+    required this.type,
     this.tickInterval = 1.0,
     super.color = Colors.black,
   });
@@ -27,12 +39,13 @@ abstract class AxisElement extends DrawableElement {
     return other is AxisElement &&
            other.x == x &&
            other.y == y &&
+           other.type == type &&
            other.tickInterval == tickInterval &&
            other.color == color;
   }
 
   @override
-  int get hashCode => Object.hash(x, y, tickInterval, color);
+  int get hashCode => Object.hash(x, y, type, tickInterval, color);
 }
 
 /// Represents the X-axis in the diagram
@@ -45,6 +58,7 @@ class XAxisElement extends AxisElement {
   }) : super(
     x: 0,
     y: yValue,
+    type: AxisType.x,
   );
 
   @override
@@ -110,6 +124,7 @@ class YAxisElement extends AxisElement {
   }) : super(
     x: xValue,
     y: 0,
+    type: AxisType.y,
   );
 
   @override

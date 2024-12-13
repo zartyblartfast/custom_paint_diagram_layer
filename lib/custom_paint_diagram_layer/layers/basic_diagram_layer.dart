@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import '../coordinate_system.dart';
 import '../drawable_element.dart';
 import '../elements/axis_element.dart';
@@ -58,7 +59,11 @@ class BasicDiagramLayer implements IDiagramLayer {
   IDiagramLayer toggleAxes() {
     final newShowAxes = !showAxes;
     var layer = copyWith(showAxes: newShowAxes);
-    return newShowAxes ? layer._addAxesToDiagram() : layer._removeAxes();
+    
+    if (layer is BasicDiagramLayer) {
+      return newShowAxes ? layer._addAxesToDiagram() : layer._removeAxes();
+    }
+    return layer;
   }
 
   @override

@@ -3,6 +3,8 @@ import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/line_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/rectangle_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/text_element.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
+import 'spring_balance/spring_balance_main.dart';
 
 void main() {
   runApp(const DiagramApp());
@@ -16,10 +18,20 @@ class DiagramApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Custom Paint Diagram Layer Example'),
+          title: const Text('Custom Paint Diagram Layer Examples'),
         ),
         body: const Center(
-          child: DiagramWidget(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: DiagramWidget(),
+              ),
+              Expanded(
+                child: SpringBalanceDiagram(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -34,7 +46,7 @@ class DiagramWidget extends StatefulWidget {
 }
 
 class _DiagramWidgetState extends State<DiagramWidget> {
-  late Diagram _diagram;
+  late IDiagramLayer _layer;
   bool _showAxes = true;
 
   @override
@@ -44,26 +56,41 @@ class _DiagramWidgetState extends State<DiagramWidget> {
   }
 
   void _initializeDiagram() {
-    _diagram = Diagram(
+    _layer = BasicDiagramLayer(
       coordinateSystem: CoordinateSystem(
-        origin: const Offset(200, 200), // Center of canvas
+        origin: const Offset(200, 400), // Bottom center
         xRangeMin: -10,
         xRangeMax: 10,
-        yRangeMin: -10,
-        yRangeMax: 10,
+        yRangeMin: 0,  // No negative y values
+        yRangeMax: 20, // Doubled to maintain same scale
         scale: 15,
       ),
-      elements: [
-        LineElement(x1: -5, y1: -5, x2: 5, y2: 5, color: Colors.red),
-        LineElement(x1: -5, y1: 5, x2: 5, y2: -5, color: Colors.blue),
-        RectangleElement(x: 0, y: 0, width: 4, height: 3, color: Colors.green.withOpacity(0.5)),
-        TextElement(x: 0, y: 0, text: 'Center', color: Colors.black),
-        TextElement(x: -5, y: -5, text: '(-5,-5)', color: Colors.red),
-        TextElement(x: 5, y: 5, text: '(5,5)', color: Colors.red),
-        TextElement(x: -5, y: 5, text: 'topLeft', color: Colors.blue),
-      ],
       showAxes: _showAxes,
-    ).addAxesToDiagram();
+    );
+
+    // Add example elements
+    _layer = _layer
+      .addElement(
+        LineElement(x1: -5, y1: 5, x2: 5, y2: 15, color: Colors.red),
+      )
+      .addElement(
+        LineElement(x1: -5, y1: 15, x2: 5, y2: 5, color: Colors.blue),
+      )
+      .addElement(
+        RectangleElement(x: 0, y: 10, width: 4, height: 3, color: Colors.green.withOpacity(0.5)),
+      )
+      .addElement(
+        TextElement(x: 0, y: 10, text: 'Center', color: Colors.black),
+      )
+      .addElement(
+        TextElement(x: -5, y: 5, text: '(-5,5)', color: Colors.red),
+      )
+      .addElement(
+        TextElement(x: 5, y: 15, text: '(5,15)', color: Colors.red),
+      )
+      .addElement(
+        TextElement(x: -5, y: 15, text: 'topLeft', color: Colors.blue),
+      );
   }
 
   @override
@@ -78,19 +105,18 @@ class _DiagramWidgetState extends State<DiagramWidget> {
             border: Border.all(color: Colors.grey),
           ),
           child: CustomPaint(
-            painter: CustomPaintRenderer(_diagram),
+            painter: CustomPaintRenderer(_layer),
           ),
         ),
-        const SizedBox(height: 16),
-        SwitchListTile(
-          title: const Text('Show Coordinate Axes'),
-          value: _showAxes,
-          onChanged: (bool value) {
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {
             setState(() {
-              _showAxes = value;
-              _diagram = _diagram.toggleAxes();
+              _showAxes = !_showAxes;
+              _layer = _layer.toggleAxes();
             });
           },
+          child: Text(_showAxes ? 'Hide Axes' : 'Show Axes'),
         ),
       ],
     );

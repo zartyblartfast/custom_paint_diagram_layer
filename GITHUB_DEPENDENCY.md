@@ -63,6 +63,20 @@ Import the package in your Dart code:
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 ```
 
+## Quick Start with Templates
+
+For the fastest way to get started:
+
+1. Copy one of our template projects from the `/templates` directory:
+   - `basic_diagram`: A simple example showing core functionality
+   - `spring_balance`: A more complex example with interactive elements
+
+2. Update your `pubspec.yaml` with the package dependency
+3. Run `flutter pub get`
+4. Start customizing the template code for your needs
+
+For detailed examples, check the template projects in the `/templates` directory.
+
 ## Available Versions
 
 The package follows semantic versioning:

@@ -200,6 +200,46 @@ final styledDiagram = DiagramLayerFactory.create(
 
 ## Migration Guidelines
 
+### 0. Implementation Notes and Pitfalls
+
+This section documents key learnings from implementation attempts to help avoid common pitfalls:
+
+#### Critical Mistakes to Avoid
+1. **Don't Modify Base Interfaces Prematurely**
+   - ❌ Adding generics to `IDiagramLayer`
+   - ❌ Modifying existing element interfaces
+   - ✅ Keep existing interfaces stable during parallel implementation
+
+2. **Don't Skip the Directory Structure**
+   - ❌ Modifying code in place
+   - ❌ Mixing new and old implementations
+   - ✅ Set up proper directory structure first:
+     ```
+     lib/
+     ├── custom_paint_diagram_layer/
+     │   ├── elements/           # Existing code stays here
+     │   └── styled/            # All new code goes here
+     ```
+
+3. **Don't Force Early Integration**
+   - ❌ Using generics for compatibility
+   - ❌ Modifying existing tests
+   - ✅ Use the adapter layer as designed
+
+#### Correct Implementation Order
+1. Set up new directory structure completely
+2. Implement style system in isolation
+3. Create new elements with "v2" suffix
+4. Build adapter layer for compatibility
+5. Allow opt-in through factory pattern
+6. Gradually migrate as needed
+
+#### Key Principles
+- Existing code remains untouched
+- New features built in parallel
+- Adapters handle compatibility
+- Migration is optional and gradual
+
 ### 1. Testing Strategy
 - Maintain existing tests for legacy code
 - Write tests for new implementations

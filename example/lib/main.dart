@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/custom_paint_renderer.dart';
 import 'spring_balance/spring_balance_main.dart';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Test loading the image directly
+  try {
+    final data = await rootBundle.load('assets/observer.png');
+    print('Successfully loaded observer.png: ${data.lengthInBytes} bytes');
+  } catch (e) {
+    print('Failed to load observer.png: $e');
+  }
+  
   runApp(const DiagramApp());
 }
 
@@ -73,8 +86,49 @@ class _DiagramWidgetState extends State<DiagramWidget> {
         .addElement(const YAxisElement(xValue: 0));
     }
 
-    // Add example elements
+    // Add other elements
     _layer = _layer
+      .addElement(
+        GridElement(
+          majorSpacing: 1.0,
+          minorSpacing: 0.2,
+          majorColor: Colors.grey.shade400,
+          minorColor: Colors.grey.shade200,
+          majorStyle: GridLineStyle.solid,
+          minorStyle: GridLineStyle.dotted,
+          opacity: 0.3,
+        ),
+      )
+      .addElement(
+        RulerElement(
+          x: _layer.coordinateSystem.xRangeMin,
+          y: 0,
+          length: _layer.coordinateSystem.xRangeMax - _layer.coordinateSystem.xRangeMin,
+          orientation: RulerOrientation.horizontal,
+          majorTickSpacing: 1.0,
+          minorTickSpacing: 0.2,
+          majorTickLength: 0.3,
+          minorTickLength: 0.15,
+          color: Colors.black87,
+          labelSize: 10.0,
+          numberFormat: (value) => value.toStringAsFixed(0),
+        ),
+      )
+      .addElement(
+        RulerElement(
+          x: 0,
+          y: _layer.coordinateSystem.yRangeMin,
+          length: _layer.coordinateSystem.yRangeMax - _layer.coordinateSystem.yRangeMin,
+          orientation: RulerOrientation.vertical,
+          majorTickSpacing: 1.0,
+          minorTickSpacing: 0.2,
+          majorTickLength: 0.3,
+          minorTickLength: 0.15,
+          color: Colors.black87,
+          labelSize: 10.0,
+          numberFormat: (value) => value.toStringAsFixed(0),
+        ),
+      )
       .addElement(
         LineElement(
           x1: -5, 
@@ -83,7 +137,7 @@ class _DiagramWidgetState extends State<DiagramWidget> {
           y2: 15, 
           color: Colors.red,
           strokeWidth: 2.0,
-          dashPattern: [5, 5],  // 5 pixel dash, 5 pixel gap
+          dashPattern: [5, 5],
         ),
       )
       .addElement(
@@ -102,18 +156,6 @@ class _DiagramWidgetState extends State<DiagramWidget> {
         ),
       )
       .addElement(
-        TextElement(x: 0, y: 10, text: 'Center', color: Colors.black),
-      )
-      .addElement(
-        TextElement(x: -5, y: 5, text: '(-5,5)', color: Colors.red),
-      )
-      .addElement(
-        TextElement(x: 5, y: 15, text: '(5,15)', color: Colors.red),
-      )
-      .addElement(
-        TextElement(x: -5, y: 15, text: 'topLeft', color: Colors.blue),
-      )
-      .addElement(
         CircleElement(
           x: -2,
           y: 8,
@@ -124,28 +166,16 @@ class _DiagramWidgetState extends State<DiagramWidget> {
           fillOpacity: 0.3,
         ),
       )
+      // Add our test image element
       .addElement(
-        RightTriangleElement(
-          x: -6,
-          y: 4,
-          width: 3,
-          height: 2,
-          color: Colors.orange,
-          strokeWidth: 2.0,
-          fillColor: Colors.orange,
-          fillOpacity: 0.8,  // Changed from 0.2 to 0.8 for more solid fill
-        ),
-      )
-      .addElement(
-        IsoscelesTriangleElement(
-          x: -6,
-          y: 0,
-          baseWidth: 3,
-          height: 2.5,
-          color: Colors.blue,
-          strokeWidth: 2.0,
-          fillColor: Colors.blue,
-          fillOpacity: 0.2,
+        ImageElement(
+          x: 0,
+          y: 2,
+          source: ImageSource.network,
+          path: 'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',  // Simple static image
+          width: 4,
+          height: 4,
+          opacity: 1.0,
         ),
       );
   }

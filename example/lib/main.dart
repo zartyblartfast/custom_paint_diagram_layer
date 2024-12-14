@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/line_element.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/rectangle_element.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/text_element.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/axis_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/custom_paint_renderer.dart';
 import 'spring_balance/spring_balance_main.dart';
@@ -80,13 +76,30 @@ class _DiagramWidgetState extends State<DiagramWidget> {
     // Add example elements
     _layer = _layer
       .addElement(
-        LineElement(x1: -5, y1: 5, x2: 5, y2: 15, color: Colors.red),
+        LineElement(
+          x1: -5, 
+          y1: 5, 
+          x2: 5, 
+          y2: 15, 
+          color: Colors.red,
+          strokeWidth: 2.0,
+          dashPattern: [5, 5],  // 5 pixel dash, 5 pixel gap
+        ),
       )
       .addElement(
         LineElement(x1: -5, y1: 15, x2: 5, y2: 5, color: Colors.blue),
       )
       .addElement(
-        RectangleElement(x: 0, y: 10, width: 4, height: 3, color: Colors.green.withOpacity(0.5)),
+        RectangleElement(
+          x: 0,
+          y: 10,
+          width: 4,
+          height: 3,
+          color: Colors.green,
+          strokeWidth: 2.0,
+          fillColor: Colors.green,
+          fillOpacity: 0.2,
+        ),
       )
       .addElement(
         TextElement(x: 0, y: 10, text: 'Center', color: Colors.black),
@@ -99,6 +112,41 @@ class _DiagramWidgetState extends State<DiagramWidget> {
       )
       .addElement(
         TextElement(x: -5, y: 15, text: 'topLeft', color: Colors.blue),
+      )
+      .addElement(
+        CircleElement(
+          x: -2,
+          y: 8,
+          radius: 1.5,
+          color: Colors.purple,
+          strokeWidth: 2.0,
+          fillColor: Colors.purple,
+          fillOpacity: 0.3,
+        ),
+      )
+      .addElement(
+        RightTriangleElement(
+          x: -6,
+          y: 4,
+          width: 3,
+          height: 2,
+          color: Colors.orange,
+          strokeWidth: 2.0,
+          fillColor: Colors.orange,
+          fillOpacity: 0.8,  // Changed from 0.2 to 0.8 for more solid fill
+        ),
+      )
+      .addElement(
+        IsoscelesTriangleElement(
+          x: -6,
+          y: 0,
+          baseWidth: 3,
+          height: 2.5,
+          color: Colors.blue,
+          strokeWidth: 2.0,
+          fillColor: Colors.blue,
+          fillOpacity: 0.2,
+        ),
       );
   }
 

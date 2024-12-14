@@ -17,3 +17,6 @@ export 'custom_paint_diagram_layer/elements/axis_element.dart';
 export 'custom_paint_diagram_layer/elements/line_element.dart';
 export 'custom_paint_diagram_layer/elements/rectangle_element.dart';
 export 'custom_paint_diagram_layer/elements/text_element.dart';
+export 'custom_paint_diagram_layer/elements/circle_element.dart';
+export 'custom_paint_diagram_layer/elements/right_triangle_element.dart';
+export 'custom_paint_diagram_layer/elements/isosceles_triangle_element.dart';

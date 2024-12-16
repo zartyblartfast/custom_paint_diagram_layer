@@ -57,6 +57,8 @@ class DottedLineElement extends DrawableElement {
           pattern != DashPattern.custom || (customPattern != null && customPattern.isNotEmpty),
           'Custom pattern requires a non-empty customPattern list',
         ),
+        assert(spacing > 0, 'Spacing must be positive'),
+        assert(strokeWidth > 0, 'Stroke width must be positive'),
         super(
           x: x,
           y: y,
@@ -67,6 +69,9 @@ class DottedLineElement extends DrawableElement {
   void render(Canvas canvas, CoordinateSystem coordinates) {
     final startPoint = coordinates.mapValueToDiagram(x, y);
     final endPoint = coordinates.mapValueToDiagram(endX, endY);
+
+    // Early return if start and end points are the same
+    if (startPoint == endPoint) return;
 
     final paint = Paint()
       ..color = color
@@ -82,8 +87,11 @@ class DottedLineElement extends DrawableElement {
     final unitX = dx / length;
     final unitY = dy / length;
 
-    // Get the dash pattern based on the selected type
-    final List<double> dashPattern = _getDashPattern();
+    // Scale the spacing based on the coordinate system
+    final scaledSpacing = spacing * coordinates.scale;
+
+    // Get the dash pattern based on the selected type and scale it
+    final List<double> dashPattern = _getScaledDashPattern(coordinates);
     
     // Draw the dashed/dotted line
     double distance = 0;
@@ -127,17 +135,23 @@ class DottedLineElement extends DrawableElement {
     }
   }
 
-  /// Gets the dash pattern based on the selected type
-  List<double> _getDashPattern() {
+  /// Gets the dash pattern based on the selected type and scales it
+  List<double> _getScaledDashPattern(CoordinateSystem coordinates) {
+    final scale = coordinates.scale;
+    final scaledSpacing = spacing * scale;
+
     switch (pattern) {
       case DashPattern.dotted:
-        return [0, spacing];
+        return [0, scaledSpacing];
       case DashPattern.dashed:
-        return [spacing * 2, spacing];
+        // Long dash, medium gap
+        return [scaledSpacing * 3, scaledSpacing];
       case DashPattern.dashDot:
-        return [spacing * 2, spacing, 0, spacing];
+        // Medium dash, small gap, dot, medium gap
+        return [scaledSpacing * 2, scaledSpacing * 0.8, scaledSpacing * 0.5, scaledSpacing];
       case DashPattern.custom:
-        return customPattern!;
+        // Scale the custom pattern
+        return customPattern!.map((length) => length * scale).toList();
     }
   }
 

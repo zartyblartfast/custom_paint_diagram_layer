@@ -11,3 +11,6 @@ export 'custom_paint_diagram_layer/layers/layers.dart';
 
 // Elements
 export 'custom_paint_diagram_layer/elements/elements.dart';
+
+// Mixins
+export 'mixins/element_boundary_positioning_mixin.dart';

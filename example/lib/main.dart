@@ -1,23 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/custom_paint_renderer.dart';
-import 'spring_balance/spring_balance_main.dart';
-import 'dart:math' as math;
-import 'dart:ui' as ui;
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Test loading the image directly
-  try {
-    final data = await rootBundle.load('assets/observer.png');
-    print('Successfully loaded observer.png: ${data.lengthInBytes} bytes');
-  } catch (e) {
-    print('Failed to load observer.png: $e');
-  }
-  
+void main() {
   runApp(const DiagramApp());
 }
 
@@ -29,34 +13,24 @@ class DiagramApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Custom Paint Diagram Layer Examples'),
+          title: const Text('Dotted Line Patterns'),
         ),
         body: const Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: DiagramWidget(),
-              ),
-              Expanded(
-                child: SpringBalanceDiagram(),
-              ),
-            ],
-          ),
+          child: SingleDiagramWidget(),
         ),
       ),
     );
   }
 }
 
-class DiagramWidget extends StatefulWidget {
-  const DiagramWidget({super.key});
+class SingleDiagramWidget extends StatefulWidget {
+  const SingleDiagramWidget({super.key});
 
   @override
-  State<DiagramWidget> createState() => _DiagramWidgetState();
+  State<SingleDiagramWidget> createState() => _SingleDiagramWidgetState();
 }
 
-class _DiagramWidgetState extends State<DiagramWidget> {
+class _SingleDiagramWidgetState extends State<SingleDiagramWidget> {
   late IDiagramLayer _layer;
   bool _showAxes = true;
 
@@ -69,113 +43,151 @@ class _DiagramWidgetState extends State<DiagramWidget> {
   void _initializeDiagram() {
     _layer = BasicDiagramLayer(
       coordinateSystem: CoordinateSystem(
-        origin: const Offset(200, 400), // Bottom center
-        xRangeMin: -10,
-        xRangeMax: 10,
-        yRangeMin: 0,  // No negative y values
-        yRangeMax: 20, // Doubled to maintain same scale
-        scale: 15,
+        origin: const Offset(200, 200),
+        xRangeMin: -5,
+        xRangeMax: 5,
+        yRangeMin: -5,
+        yRangeMax: 5,
+        scale: 40,
       ),
-      showAxes: _showAxes,
     );
 
-    // Add axes if needed
+    // Add axes if enabled
     if (_showAxes) {
       _layer = _layer
-        .addElement(const XAxisElement(yValue: 0))
-        .addElement(const YAxisElement(xValue: 0));
+          .addElement(const XAxisElement(yValue: 0))
+          .addElement(const YAxisElement(xValue: 0));
     }
 
-    // Add other elements
+    // Add grid for reference
+    _layer = _layer.addElement(
+      GridElement(
+        x: -5,
+        y: -5,
+        majorSpacing: 1,
+        minorSpacing: 0.2,
+        majorColor: Colors.grey.withOpacity(0.5),
+        minorColor: Colors.grey.withOpacity(0.2),
+        majorStrokeWidth: 1,
+        minorStrokeWidth: 0.5,
+      ),
+    );
+
+    // 1. Dotted pattern (default)
+    _layer = _layer.addElement(
+      DottedLineElement(
+        x: -3,
+        y: 3,
+        endX: 3,
+        endY: 3,
+        color: Colors.blue,
+        strokeWidth: 3,
+        pattern: DashPattern.dotted,
+        spacing: 0.3,  // Small spacing for dense dots
+      ),
+    );
+
+    // 2. Dashed pattern
+    _layer = _layer.addElement(
+      DottedLineElement(
+        x: -3,
+        y: 1,
+        endX: 3,
+        endY: 1,
+        color: Colors.red,
+        strokeWidth: 3,
+        pattern: DashPattern.dashed,
+        spacing: 0.4,  // Medium spacing for dashes
+      ),
+    );
+
+    // 3. Dash-dot pattern
+    _layer = _layer.addElement(
+      DottedLineElement(
+        x: -3,
+        y: -1,
+        endX: 3,
+        endY: -1,
+        color: Colors.green,
+        strokeWidth: 3,
+        pattern: DashPattern.dashDot,
+        spacing: 0.35,  // Balanced spacing for dash-dot
+      ),
+    );
+
+    // 4. Custom pattern (alternating long and short dashes)
+    _layer = _layer.addElement(
+      DottedLineElement(
+        x: -3,
+        y: -3,
+        endX: 3,
+        endY: -3,
+        color: Colors.purple,
+        strokeWidth: 3,
+        pattern: DashPattern.custom,
+        customPattern: [0.8, 0.3, 0.4, 0.3],  // Long dash, gap, short dash, gap
+      ),
+    );
+
+    // 5. Diagonal dotted line to show angle handling
+    _layer = _layer.addElement(
+      DottedLineElement(
+        x: 2,
+        y: -4,
+        endX: 4,
+        endY: -2,
+        color: Colors.orange,
+        strokeWidth: 3,
+        pattern: DashPattern.dotted,
+        spacing: 0.3,  // Same as horizontal dotted line
+      ),
+    );
+
+    // Add labels for each pattern
     _layer = _layer
       .addElement(
-        GridElement(
-          majorSpacing: 1.0,
-          minorSpacing: 0.2,
-          majorColor: Colors.grey.shade400,
-          minorColor: Colors.grey.shade200,
-          majorStyle: GridLineStyle.solid,
-          minorStyle: GridLineStyle.dotted,
-          opacity: 0.3,
+        TextElement(
+          x: 3.2,
+          y: 3,
+          text: 'Dotted',
+          color: Colors.blue,
+          style: TextStyle(fontSize: 14, color: Colors.blue),
         ),
       )
       .addElement(
-        RulerElement(
-          x: _layer.coordinateSystem.xRangeMin,
-          y: 0,
-          length: _layer.coordinateSystem.xRangeMax - _layer.coordinateSystem.xRangeMin,
-          orientation: RulerOrientation.horizontal,
-          majorTickSpacing: 1.0,
-          minorTickSpacing: 0.2,
-          majorTickLength: 0.3,
-          minorTickLength: 0.15,
-          color: Colors.black87,
-          labelSize: 10.0,
-          numberFormat: (value) => value.toStringAsFixed(0),
-        ),
-      )
-      .addElement(
-        RulerElement(
-          x: 0,
-          y: _layer.coordinateSystem.yRangeMin,
-          length: _layer.coordinateSystem.yRangeMax - _layer.coordinateSystem.yRangeMin,
-          orientation: RulerOrientation.vertical,
-          majorTickSpacing: 1.0,
-          minorTickSpacing: 0.2,
-          majorTickLength: 0.3,
-          minorTickLength: 0.15,
-          color: Colors.black87,
-          labelSize: 10.0,
-          numberFormat: (value) => value.toStringAsFixed(0),
-        ),
-      )
-      .addElement(
-        LineElement(
-          x1: -5, 
-          y1: 5, 
-          x2: 5, 
-          y2: 15, 
+        TextElement(
+          x: 3.2,
+          y: 1,
+          text: 'Dashed',
           color: Colors.red,
-          strokeWidth: 2.0,
-          dashPattern: [5, 5],
+          style: TextStyle(fontSize: 14, color: Colors.red),
         ),
       )
       .addElement(
-        LineElement(x1: -5, y1: 15, x2: 5, y2: 5, color: Colors.blue),
-      )
-      .addElement(
-        RectangleElement(
-          x: 0,
-          y: 10,
-          width: 4,
-          height: 3,
+        TextElement(
+          x: 3.2,
+          y: -1,
+          text: 'Dash-dot',
           color: Colors.green,
-          strokeWidth: 2.0,
-          fillColor: Colors.green,
-          fillOpacity: 0.2,
+          style: TextStyle(fontSize: 14, color: Colors.green),
         ),
       )
       .addElement(
-        CircleElement(
-          x: -2,
-          y: 8,
-          radius: 1.5,
+        TextElement(
+          x: 3.2,
+          y: -3,
+          text: 'Custom',
           color: Colors.purple,
-          strokeWidth: 2.0,
-          fillColor: Colors.purple,
-          fillOpacity: 0.3,
+          style: TextStyle(fontSize: 14, color: Colors.purple),
         ),
       )
-      // Add our test image element
       .addElement(
-        ImageElement(
-          x: 0,
-          y: 2,
-          source: ImageSource.network,
-          path: 'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',  // Simple static image
-          width: 4,
-          height: 4,
-          opacity: 1.0,
+        TextElement(
+          x: 4.2,
+          y: -2,
+          text: 'Diagonal',
+          color: Colors.orange,
+          style: TextStyle(fontSize: 14, color: Colors.orange),
         ),
       );
   }
@@ -183,12 +195,13 @@ class _DiagramWidgetState extends State<DiagramWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           width: 400,
           height: 400,
           decoration: BoxDecoration(
+            color: Colors.white,
             border: Border.all(color: Colors.grey),
           ),
           child: CustomPaint(
@@ -200,19 +213,7 @@ class _DiagramWidgetState extends State<DiagramWidget> {
           onPressed: () {
             setState(() {
               _showAxes = !_showAxes;
-              if (_showAxes) {
-                _layer = _layer
-                  .addElement(const XAxisElement(yValue: 0))
-                  .addElement(const YAxisElement(xValue: 0));
-              } else {
-                _layer = BasicDiagramLayer(
-                  coordinateSystem: _layer.coordinateSystem,
-                  elements: _layer.elements.where((e) => 
-                    !(e is XAxisElement || e is YAxisElement)
-                  ).toList(),
-                  showAxes: false,
-                );
-              }
+              _initializeDiagram();
             });
           },
           child: Text(_showAxes ? 'Hide Axes' : 'Show Axes'),

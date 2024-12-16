@@ -50,6 +50,10 @@
 **Expected Output:** A well-documented base class for elements.  
 **Dependencies:** `CoordinateSystem`
 
+**Important Implementation Notes:**
+- For group element positioning and bounds calculations, see: `docs/implementation_notes/group_element_positioning.md`
+- Critical for correct margin alignment and visual extent calculations
+
 ### 3. CanvasAlignment
 **Purpose:** Manages atomic updates to coordinate system alignment and scale.
 

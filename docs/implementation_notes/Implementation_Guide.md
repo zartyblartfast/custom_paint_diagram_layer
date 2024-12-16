@@ -3,6 +3,21 @@
 ## Core Principle
 The fundamental principle of our implementation is that **all diagram modifications must go through the diagram layer**. This ensures consistent behavior, proper state management, and maintainable code.
 
++ ## Key Use Cases
++ 
++ ### 1. Static Diagrams
++ - Fixed educational illustrations
++ - Technical documentation
++ - System architecture diagrams
++ 
++ ### 2. Dynamic Diagrams
++ - Interactive learning tools
++ - Real-time data visualization
++ - Animated demonstrations
++ - User-controlled element positioning
++ - Physics simulations
++ - Step-by-step diagram construction
++ 
 ## Architecture Overview
 
 ### Diagram Layer
@@ -190,6 +205,43 @@ ArrowElement(
 - Head size controlled by length and angle
 - Consistent stroke width throughout
 
+#### AxisElement
+Coordinate axis with ticks and labels.
+```dart
+XAxisElement(
+  yValue: 0,           // Position on Y-axis
+  tickInterval: 1.0,   // Space between ticks
+  color: Colors.black,
+)
+
+YAxisElement(
+  xValue: 0,           // Position on X-axis
+  tickInterval: 1.0,   // Space between ticks
+  color: Colors.black,
+)
+```
+- Automatically handles tick marks and labels
+- Scales with coordinate system
+- Can be toggled via `layer.toggleAxes()`
+- Initial visibility set via `showAxes` parameter in BasicDiagramLayer
++ 
++ **Important Note on Axis Initialization:**
++ When you want axes to be visible on initial diagram creation, use this pattern:
++ ```dart
++ // Create layer with showAxes: false initially
++ var layer = BasicDiagramLayer(
++   coordinateSystem: coordSystem,
++   showAxes: false,
++ );
++ 
++ // Add your elements...
++ layer = layer.addElement(...);
++ 
++ // Toggle axes on before returning the layer
++ return layer.toggleAxes();
++ ```
++ This ensures the coordinate axes are properly displayed when the diagram first loads.
+
 ### Best Practices
 
 1. **Parameter Validation**
@@ -232,14 +284,16 @@ ArrowElement(
   - All element operations go through layer methods
   - Elements are immutable
   - New instances created for modifications
+  - Coordinate axes can be toggled with `toggleAxes()`
 - **Example**:
   ```dart
   // Correct - using diagram layer methods
   _layer = _layer.addElement(newElement);
-  _layer = _layer.toggleAxes();
+  _layer = _layer.toggleAxes();  // Toggle coordinate axes visibility
 
   // Incorrect - bypassing diagram layer
-  _layer.elements.add(newElement);  // Don't do this!
+  _layer.elements.add(element);  // Don't do this!
+  _layer.showAxes = false;      // Don't do this!
   ```
 
 ### 3. Coordinate System
@@ -247,6 +301,41 @@ ArrowElement(
   - CoordinateSystem class handles all transformations
   - Used by all elements for rendering
   - Maintained by diagram layer
+
++ **Coordinate System Configuration:**
++ ```dart
++ final coordSystem = CoordinateSystem(
++   // For bottom-center X-axis with Y-axis going up:
++   origin: Offset(canvasWidth/2, canvasHeight),  // Place origin at bottom center
++   scale: 50,  // Pixels per unit
++   xRangeMin: -5,  // X-axis extends left from origin
++   xRangeMax: 5,   // X-axis extends right from origin
++   yRangeMin: 0,   // Y-axis starts at origin
++   yRangeMax: 10,  // Y-axis extends up from origin
++ );
++ ```
++ 
++ **Common Configurations:**
++ 1. Center Origin (traditional Cartesian):
++    ```dart
++    origin: Offset(canvasWidth/2, canvasHeight/2),
++    yRangeMin: -5,  // Extends down from origin
++    yRangeMax: 5,   // Extends up from origin
++    ```
++ 
++ 2. Bottom X-axis (engineering/graphing):
++    ```dart
++    origin: Offset(canvasWidth/2, canvasHeight),
++    yRangeMin: 0,    // Starts at origin
++    yRangeMax: 10,   // Extends up only
++    ```
++ 
++ **Important Notes:**
++ - Origin position affects entire coordinate system
++ - Scale factor determines pixels per coordinate unit
++ - Y-axis is inverted in screen coordinates (positive down)
++ - Coordinate ranges should match diagram content needs
++ - Consider canvas size when setting ranges and scale
 
 ## Example: Spring Balance Diagram
 ```dart
@@ -303,6 +392,70 @@ void _updateSpring(double newLength) {
 - Animation support
 - Interactive elements
 - Multiple diagram types
+
++ ### Interactive Element Positioning
++ One of the key strengths of the Diagram Layer is its ability to create dynamic, interactive diagrams. This is particularly useful for:
++ - Educational tools where students can manipulate elements
++ - Interactive demonstrations of concepts
++ - Real-time visualization of data or calculations
++ - User-driven diagram modifications
++ 
++ To implement interactive control of element positions:
++ 
++ 1. **State Management**
++ ```dart
++ class _MyWidgetState extends State<MyWidget> {
++   late IDiagramLayer _layer;
++   double _elementPosition = 0.0;  // Track position
++ 
++   @override
++   void initState() {
++     super.initState();
++     _layer = _createDiagram();
++   }
++ }
++ ```
++ 
++ 2. **Slider Implementation**
++ ```dart
++ // For vertical movement, rotate the slider
++ SizedBox(
++   height: diagramHeight,
++   child: RotatedBox(
++     quarterTurns: 3,  // Make slider vertical
++     child: Slider(
++       value: _elementPosition,
++       min: -5.0,
++       max: 5.0,
++       onChanged: (value) {
++         setState(() {
++           _elementPosition = value;
++           _layer = _createDiagram();  // Recreate diagram with new position
++         });
++       },
++     ),
++   ),
++ ),
++ ```
++ 
++ 3. **Element Positioning**
++ ```dart
++ // Use the tracked position in element creation
++ layer.addElement(
++   CircleElement(
++     x: 0,
++     y: _elementPosition,  // Use controlled position
++     radius: 0.3,
++     color: Colors.blue,
++   ),
++ );
++ ```
++ 
++ **Important Notes:**
++ - Slider range should match coordinate system range
++ - Recreate entire diagram on position changes to maintain immutability
++ - Consider performance with complex diagrams
++ - Use appropriate step values for precise control
 
 ### 3. Performance Optimization
 - Caching strategies

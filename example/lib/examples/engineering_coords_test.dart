@@ -57,31 +57,63 @@ class EngineeringCoordsTestState extends DiagramTestBaseState<EngineeringCoordsT
   @override
   List<DrawableElement> createElements(double sliderValue) {
     final mapper = CoordinateMapper(diagramLayer.coordinateSystem);
-    return [
-      GroupElement(
-        x: mapper.mapSliderToPosition(sliderValue: xSliderValue, isXAxis: true),
-        y: mapper.mapSliderToPosition(sliderValue: ySliderValue, isXAxis: false),
-        children: [
-          // Rectangle centered at x=0 (extends -1 to +1), y=-1 (extends -2 to 0)
-          RectangleElement(
-            x: -1,   // Left edge at x=-1 to center width=2 rectangle
-            y: 0,    // Top edge at y=0
-            width: 2,
-            height: 2,
-            color: Colors.blue,
-            fillColor: Colors.blue.withOpacity(0.3),
-          ),
-          // Circle centered at x=0, y=1 (bottom edge at y=0)
-          CircleElement(
-            x: 0,    // Center on x=0
-            y: 1,    // Center at y=1, bottom edge at y=0
-            radius: 1,
-            color: Colors.red,
-            fillColor: Colors.red.withOpacity(0.3),
-          ),
-        ],
-      ),
-    ];
+
+    // Get the desired positions from the sliders
+    var proposedX = mapper.mapSliderToPosition(sliderValue: xSliderValue, isXAxis: true);
+    var proposedY = mapper.mapSliderToPosition(sliderValue: ySliderValue, isXAxis: false);
+
+    // Create the group element at the proposed position
+    var group = GroupElement(
+      x: proposedX,
+      y: proposedY,
+      children: [
+        RectangleElement(
+          x: -1,    // Center at x=0: left edge = center - width/2 = 0 - 2/2 = -1
+          y: -2,    // Center at y=-1: top edge = center - height/2 = -1 - 2/2 = -2
+          width: 2,
+          height: 2,
+          color: Colors.blue,
+          fillColor: Colors.blue.withOpacity(0.3),
+        ),
+        CircleElement(
+          x: 0,     // Center on vertical line
+          y: 1,     // One unit up from group center
+          radius: 1,
+          color: Colors.red,
+          fillColor: Colors.red.withOpacity(0.3),
+        ),
+      ],
+    );
+
+    // Check the group bounds
+    final coords = diagramLayer.coordinateSystem;
+    final bounds = ElementBounds(group, coords);
+
+    // If out of bounds, adjust position
+    double dx = 0.0;
+    double dy = 0.0;
+    if (bounds.minX < coords.xRangeMin) {
+      dx = coords.xRangeMin - bounds.minX;
+    }
+    if (bounds.maxX > coords.xRangeMax) {
+      dx = coords.xRangeMax - bounds.maxX;
+    }
+    if (bounds.minY < coords.yRangeMin) {
+      dy = coords.yRangeMin - bounds.minY;
+    }
+    if (bounds.maxY > coords.yRangeMax) {
+      dy = coords.yRangeMax - bounds.maxY;
+    }
+
+    if (dx != 0.0 || dy != 0.0) {
+      group = GroupElement(
+        x: group.x + dx,
+        y: group.y + dy,
+        children: group.children,
+      );
+    }
+
+    return [group];
   }
 
   @override

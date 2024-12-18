@@ -95,24 +95,6 @@ class ElementBounds {
     };
   }
 
-  // Calculate position from slider value while respecting boundaries
-  double calculatePositionFromSlider({
-    required double sliderValue,
-    required double margin,
-  }) {
-    // Calculate valid range considering element height and margins
-    final elementHeight = height;
-    final validMin = coordSystem.yRangeMin + margin + (elementHeight / 2);
-    final validMax = coordSystem.yRangeMax - margin - (elementHeight / 2);
-    final validRange = validMax - validMin;
-    
-    // Map slider value to position
-    final sliderProgress = (sliderValue - coordSystem.yRangeMin) / 
-        (coordSystem.yRangeMax - coordSystem.yRangeMin);
-    
-    return validMin + (sliderProgress * validRange);
-  }
-
   // Get the amount by which the element violates boundaries
   Map<String, double> getBoundaryViolations() {
     return {
@@ -121,5 +103,27 @@ class ElementBounds {
       'top': maxY - coordSystem.yRangeMax,
       'bottom': coordSystem.yRangeMin - minY,
     };
+  }
+
+  /// Returns a position adjustment needed to keep the element within diagram bounds
+  /// Returns null if no adjustment is needed
+  Offset? calculateSafePosition() {
+    if (!isOutsideDiagramBounds()) {
+      return null;  // Already safe, no adjustment needed
+    }
+
+    // Get current violations
+    final violations = getBoundaryViolations();
+    
+    // Calculate corrections needed
+    double xCorrection = 0;
+    double yCorrection = 0;
+    
+    if (violations['left']! > 0) xCorrection = violations['left']!;
+    if (violations['right']! > 0) xCorrection = -violations['right']!;
+    if (violations['bottom']! > 0) yCorrection = violations['bottom']!;
+    if (violations['top']! > 0) yCorrection = -violations['top']!;
+
+    return Offset(xCorrection, yCorrection);
   }
 } 

@@ -11,6 +11,11 @@ class ElementBounds {
 
   ElementBounds(DrawableElement element, this.coordSystem) {
     _calculateBounds(element);
+    // Debug prints
+    print('\nCalculated Bounds:');
+    print('Width: ${maxX - minX}');
+    print('Height: ${maxY - minY}');
+    print('Center: (${(minX + maxX) / 2}, ${(minY + maxY) / 2})');
   }
 
   void _calculateBounds(DrawableElement element) {
@@ -22,67 +27,150 @@ class ElementBounds {
   }
 
   void _calculateElementBounds(DrawableElement element) {
-    List<Offset> localPoints;
-    
-    if (element is RectangleElement) {
-      localPoints = [
-        Offset(element.x - element.width/2, element.y - element.height/2),
-        Offset(element.x + element.width/2, element.y - element.height/2),
-        Offset(element.x - element.width/2, element.y + element.height/2),
-        Offset(element.x + element.width/2, element.y + element.height/2),
-      ];
-    } else if (element is CircleElement) {
-      localPoints = [
-        Offset(element.x - element.radius, element.y - element.radius),
-        Offset(element.x + element.radius, element.y - element.radius),
-        Offset(element.x - element.radius, element.y + element.radius),
-        Offset(element.x + element.radius, element.y + element.radius),
-      ];
-    } else {
-      localPoints = [Offset(element.x, element.y)];
-    }
-    
-    var diagramPoints = localPoints.map((p) => coordSystem.mapValueToDiagram(p.dx, p.dy)).toList();
+    // Use local variables for calculations
+    double localMinX = double.infinity;
+    double localMaxX = -double.infinity;
+    double localMinY = double.infinity;
+    double localMaxY = -double.infinity;
 
-    minX = diagramPoints.map((p) => p.dx).reduce(math.min);
-    maxX = diagramPoints.map((p) => p.dx).reduce(math.max);
-    minY = diagramPoints.map((p) => p.dy).reduce(math.min);
-    maxY = diagramPoints.map((p) => p.dy).reduce(math.max);
+    print('\nProcessing ${element.runtimeType}:');
+    print('  Position: (${element.x}, ${element.y})');
+
+    if (element is RectangleElement) {
+      final halfWidth = element.width / 2;
+      final halfHeight = element.height / 2;
+      
+      localMinX = element.x - halfWidth;
+      localMaxX = element.x + halfWidth;
+      localMinY = element.y - halfHeight;
+      localMaxY = element.y + halfHeight;
+
+      print('  Width: ${element.width}, Height: ${element.height}');
+    } else if (element is CircleElement) {
+      localMinX = element.x - element.radius;
+      localMaxX = element.x + element.radius;
+      localMinY = element.y - element.radius;
+      localMaxY = element.y + element.radius;
+
+      print('  Radius: ${element.radius} (Diameter: ${element.radius * 2})');
+    } else if (element is GroupElement) {
+      print('  Processing group children:');
+      for (final child in element.children) {
+        // Recursively calculate bounds for each child
+        final childBounds = ElementBounds(child, coordSystem);
+        localMinX = math.min(localMinX, childBounds.minX);
+        localMaxX = math.max(localMaxX, childBounds.maxX);
+        localMinY = math.min(localMinY, childBounds.minY);
+        localMaxY = math.max(localMaxY, childBounds.maxY);
+      }
+    } else {
+      // For other elements, use their position as a point
+      localMinX = element.x;
+      localMaxX = element.x;
+      localMinY = element.y;
+      localMaxY = element.y;
+      print('  Using position as bounds');
+    }
+
+    // Assign to final fields
+    minX = localMinX;
+    maxX = localMaxX;
+    minY = localMinY;
+    maxY = localMaxY;
+
+    // Print calculated bounds
+    print('  Bounds:');
+    print('    Width: ${maxX - minX} (from minX=$minX to maxX=$maxX)');
+    print('    Height: ${maxY - minY} (from minY=$minY to maxY=$maxY)');
+    print('    Center: (${(minX + maxX) / 2}, ${(minY + maxY) / 2})');
   }
 
   void _calculateGroupBounds(GroupElement group) {
-    double globalMinX = double.infinity;
-    double globalMaxX = -double.infinity;
-    double globalMinY = double.infinity;
-    double globalMaxY = -double.infinity;
-    
+    print('\n=== DETAILED BOUNDS CALCULATION ===');
+    print('Group position: (${group.x}, ${group.y})');
+
+    // Initialize bounds
+    double localMinX = double.infinity;
+    double localMaxX = -double.infinity;
+    double localMinY = double.infinity;
+    double localMaxY = -double.infinity;
+
+    // Process each child
     for (var child in group.children) {
-      var childBounds = ElementBounds(child, coordSystem);
-      
-      globalMinX = math.min(globalMinX, childBounds.minX);
-      globalMaxX = math.max(globalMaxX, childBounds.maxX);
-      globalMinY = math.min(globalMinY, childBounds.minY);
-      globalMaxY = math.max(globalMaxY, childBounds.maxY);
+      if (child is RectangleElement) {
+        print('\nRectangle Details:');
+        print('  Raw position: (${child.x}, ${child.y})');
+        print('  Dimensions: ${child.width}x${child.height}');
+        
+        // Rectangle uses top-left coordinates
+        final childMinX = child.x;
+        final childMaxX = child.x + child.width;
+        final childMinY = child.y;
+        final childMaxY = child.y + child.height;
+
+        print('  Calculated bounds:');
+        print('    X: $childMinX to $childMaxX (width: ${childMaxX - childMinX})');
+        print('    Y: $childMinY to $childMaxY (height: ${childMaxY - childMinY})');
+        print('    Center: (${(childMinX + childMaxX) / 2}, ${(childMinY + childMaxY) / 2})');
+        
+        localMinX = math.min(localMinX, childMinX);
+        localMaxX = math.max(localMaxX, childMaxX);
+        localMinY = math.min(localMinY, childMinY);
+        localMaxY = math.max(localMaxY, childMaxY);
+      } else if (child is CircleElement) {
+        print('\nCircle Details:');
+        print('  Center position: (${child.x}, ${child.y})');
+        print('  Radius: ${child.radius}');
+        
+        // Circle uses center coordinates
+        final childMinX = child.x - child.radius;
+        final childMaxX = child.x + child.radius;
+        final childMinY = child.y - child.radius;
+        final childMaxY = child.y + child.radius;
+
+        print('  Calculated bounds:');
+        print('    X: $childMinX to $childMaxX (width: ${childMaxX - childMinX})');
+        print('    Y: $childMinY to $childMaxY (height: ${childMaxY - childMinY})');
+        print('    Center: (${(childMinX + childMaxX) / 2}, ${(childMinY + childMaxY) / 2})');
+        
+        localMinX = math.min(localMinX, childMinX);
+        localMaxX = math.max(localMaxX, childMaxX);
+        localMinY = math.min(localMinY, childMinY);
+        localMaxY = math.max(localMaxY, childMaxY);
+      }
+
+      print('\nCurrent Combined Bounds:');
+      print('  X: $localMinX to $localMaxX (width: ${localMaxX - localMinX})');
+      print('  Y: $localMinY to $localMaxY (height: ${localMaxY - localMinY})');
+      print('  Center: (${(localMinX + localMaxX) / 2}, ${(localMinY + localMaxY) / 2})');
     }
 
-    minX = globalMinX + group.x;
-    maxX = globalMaxX + group.x;
-    minY = globalMinY + group.y;
-    maxY = globalMaxY + group.y;
+    // Assign final bounds
+    minX = localMinX;
+    maxX = localMaxX;
+    minY = localMinY;
+    maxY = localMaxY;
+
+    print('\nFINAL Group Bounds:');
+    print('  Width: ${maxX - minX} (from minX=$minX to maxX=$maxX)');
+    print('  Height: ${maxY - minY} (from minY=$minY to maxY=$maxY)');
+    print('  Center: (${(minX + maxX) / 2}, ${(minY + maxY) / 2})');
+    print('=== END BOUNDS CALCULATION ===\n');
   }
 
   // Properties for diagnostic display
-  double get width => maxX - minX;
-  double get height => maxY - minY;
+  double get width => maxX - minX;  // Calculate from actual bounds
+  double get height => maxY - minY;  // Calculate from actual bounds
   double get centerX => (minX + maxX) / 2;
   double get centerY => (minY + maxY) / 2;
 
   // Boundary checking
   bool isOutsideDiagramBounds() {
+    // Check if any part of the element extends beyond diagram bounds
     return minX < coordSystem.xRangeMin ||
            maxX > coordSystem.xRangeMax ||
-           minY < coordSystem.yRangeMin ||
-           maxY > coordSystem.yRangeMax;
+           maxY > coordSystem.yRangeMax ||
+           minY <= coordSystem.yRangeMin;    // Use <= for bottom boundary
   }
 
   // Detailed boundary checking
@@ -91,7 +179,7 @@ class ElementBounds {
       'left': minX < coordSystem.xRangeMin,
       'right': maxX > coordSystem.xRangeMax,
       'top': maxY > coordSystem.yRangeMax,
-      'bottom': minY < coordSystem.yRangeMin,
+      'bottom': minY <= coordSystem.yRangeMin,  // Use <= for bottom boundary
     };
   }
 
@@ -100,8 +188,8 @@ class ElementBounds {
     return {
       'left': coordSystem.xRangeMin - minX,
       'right': maxX - coordSystem.xRangeMax,
-      'top': maxY - coordSystem.yRangeMax,
-      'bottom': coordSystem.yRangeMin - minY,
+      'top': coordSystem.yRangeMin - minY,
+      'bottom': maxY - coordSystem.yRangeMax,
     };
   }
 
@@ -109,21 +197,18 @@ class ElementBounds {
   /// Returns null if no adjustment is needed
   Offset? calculateSafePosition() {
     if (!isOutsideDiagramBounds()) {
-      return null;  // Already safe, no adjustment needed
+      return null; // Already safe
     }
 
-    // Get current violations
     final violations = getBoundaryViolations();
-    
-    // Calculate corrections needed
     double xCorrection = 0;
     double yCorrection = 0;
-    
+
     if (violations['left']! > 0) xCorrection = violations['left']!;
     if (violations['right']! > 0) xCorrection = -violations['right']!;
-    if (violations['bottom']! > 0) yCorrection = violations['bottom']!;
-    if (violations['top']! > 0) yCorrection = -violations['top']!;
+    if (violations['top']! > 0) yCorrection = violations['top']!;
+    if (violations['bottom']! > 0) yCorrection = -violations['bottom']!;
 
     return Offset(xCorrection, yCorrection);
   }
-} 
+}

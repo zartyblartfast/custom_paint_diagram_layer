@@ -52,7 +52,7 @@ class RectangleElement extends DrawableElement {
     // Calculate the bottom-right point in value coordinates
     final bottomRight = coordinateSystem.mapValueToDiagram(
       x + width,
-      y - height, // Subtract height because y-axis points up
+      y + height,  // Add height because we want bottom = top + height
     );
 
     // Create the rectangle from the two points

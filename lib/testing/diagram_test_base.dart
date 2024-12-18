@@ -40,8 +40,7 @@ abstract class DiagramTestBase extends StatefulWidget {
 /// Subclasses must implement:
 /// - [createElements] to provide the elements to display
 /// - [elementHeight] to specify the height for boundary calculations
-abstract class DiagramTestBaseState<T extends DiagramTestBase> extends State<T> 
-    with ElementBoundaryPositioningMixin {
+abstract class DiagramTestBaseState<T extends DiagramTestBase> extends State<T> {
   /// The diagram layer containing all elements.
   /// 
   /// Available for subclasses to access coordinate system information.
@@ -58,31 +57,10 @@ abstract class DiagramTestBaseState<T extends DiagramTestBase> extends State<T>
   /// Creates the diagram elements for testing.
   /// 
   /// Implement this to return the list of elements to be displayed in the diagram.
-  /// The [sliderValue] parameter represents the current position of the slider,
-  /// which can be used to position elements.
-  /// 
-  /// Example:
-  /// ```dart
-  /// @override
-  /// List<DrawableElement> createElements(double sliderValue) {
-  ///   return [
-  ///     CircleElement(x: 0, y: sliderValue, radius: 1),
-  ///   ];
-  /// }
-  /// ```
   @protected
   List<DrawableElement> createElements(double sliderValue);
-  
-  /// Specifies the height of the movable element.
-  /// 
-  /// This is used to calculate proper boundary positions when moving the element.
-  /// For a group, this should be the total height including all child elements.
-  /// 
-  /// Example:
-  /// ```dart
-  /// @override
-  /// double get elementHeight => 4.0; // Height of 4 units
-  /// ```
+
+  /// The height of the element for boundary calculations.
   @protected
   double get elementHeight;
 
@@ -167,8 +145,23 @@ abstract class DiagramTestBaseState<T extends DiagramTestBase> extends State<T>
     // Add test-specific elements
     final newElements = createElements(sliderValue);
     for (final element in newElements) {
+      // Calculate bounds for diagnostic purposes
+      final bounds = ElementBounds(element, _coordSystem);
+      
+      // Add the element
       newLayer = newLayer.addElement(element);
       print('Added element: ${element.runtimeType}');
+      
+      // Print boundary information if outside bounds
+      if (bounds.isOutsideDiagramBounds()) {
+        print('Warning: Element is outside diagram bounds');
+        final violations = bounds.getBoundaryViolations();
+        violations.forEach((edge, amount) {
+          if (amount > 0) {
+            print('  $edge boundary violated by $amount units');
+          }
+        });
+      }
     }
     
     // Toggle axes if needed

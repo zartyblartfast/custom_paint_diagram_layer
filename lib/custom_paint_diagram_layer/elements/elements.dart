@@ -18,4 +18,4 @@ export 'right_triangle_element.dart';
 export 'ruler_element.dart';
 export 'spiral_element.dart';
 export 'star_element.dart';
-export 'text_element.dart'; 
+export 'text_element.dart';

@@ -34,13 +34,73 @@ The system includes several types of elements:
 
 ```
 DrawableElement (abstract)
-├── GridElement
-├── RulerElement
-├── LineElement
-├── ArrowElement
-├── RightTriangleElement
-├── DottedLineElement
-└── ImageElement
+├── Basic Shapes
+│   ├── LineElement
+│   ├── RectangleElement
+│   ├── EllipseElement
+│   ├── RightTriangleElement
+│   ├── IsoscelesTriangleElement
+│   ├── ParallelogramElement
+│   └── StarElement
+├── Curves
+│   ├── BezierCurveElement
+│   ├── ArcElement
+│   └── SpiralElement
+├── Groups
+│   └── GroupElement (contains child elements)
+├── Measurement
+│   ├── RulerElement
+│   └── GridElement
+└── Text
+    └── TextElement
+```
+
+### 4. Element Properties
+
+Common properties across elements:
+- Position (x, y coordinates)
+- Color (stroke color)
+- Stroke width
+- Fill color and opacity (for shapes)
+- Element-specific properties
+
+Element-specific properties examples:
+```dart
+// BezierCurveElement
+final Point<double> controlPoint1;
+final Point<double>? controlPoint2;  // For cubic curves
+final bool showControlPoints;
+
+// StarElement
+final int points;
+final double innerRadius;
+final double outerRadius;
+
+// GroupElement
+final List<DrawableElement> children;
+```
+
+### 5. Element Bounds
+
+Elements support bounds calculation for:
+- Hit testing
+- Group transformations
+- Layout calculations
+- Efficient rendering
+
+Example:
+```dart
+class RectangleElement extends DrawableElement {
+  @override
+  ElementBounds getBounds(CoordinateSystem coordinates) {
+    final topLeft = coordinates.mapValueToDiagram(x, y);
+    final bottomRight = coordinates.mapValueToDiagram(
+      x + width,
+      y + height,
+    );
+    return ElementBounds.fromPoints(topLeft, bottomRight);
+  }
+}
 ```
 
 ## Implementation Details
@@ -66,15 +126,7 @@ class ImageElement extends DrawableElement {
 }
 ```
 
-### 2. Element Properties
-
-Elements can have various properties:
-- Position (x, y coordinates)
-- Dimensions (width, height)
-- Color
-- Element-specific properties (e.g., image path, line thickness)
-
-### 3. Rendering
+### 2. Rendering
 
 Elements implement the `render` method to draw themselves:
 1. Convert coordinates using the coordinate system
@@ -137,25 +189,29 @@ class CustomElement extends DrawableElement {
 
 ## Best Practices
 
-1. **Coordinate Handling**
-   - Always use the coordinate system for transformations
-   - Remember the bottom-left origin when calculating positions
-   - Test elements at different scales and positions
+### 1. Element Design
+- Keep elements immutable
+- Implement getBounds() for proper bounds calculation
+- Use named parameters for clarity
+- Provide meaningful defaults
+- Document parameter constraints
 
-2. **Element Design**
-   - Keep elements focused on a single responsibility
-   - Handle errors gracefully (e.g., failed image loading)
-   - Use meaningful parameter names and defaults
+### 2. Rendering
+- Use coordinate system for all transformations
+- Handle both stroke and fill appropriately
+- Consider performance for complex shapes
+- Implement proper clipping when needed
 
-3. **Performance**
-   - Minimize calculations in render methods
-   - Cache values when possible
-   - Clean up resources (e.g., image streams) when done
+### 3. Groups
+- Maintain proper coordinate transformation
+- Handle nested groups efficiently
+- Consider bounds calculation overhead
 
-4. **Testing**
-   - Test elements at different scales
-   - Verify coordinate transformations
-   - Test error cases and edge conditions
+### 4. Testing
+- Test bounds calculations
+- Verify coordinate transformations
+- Test edge cases (zero size, negative values)
+- Validate group transformations
 
 ## Extension Points
 

@@ -24,6 +24,7 @@ abstract class IDiagramLayer {
   List<DrawableElement> get elements;
   bool get showAxes;
   
+  IDiagramLayer updateCoordinateSystem(CoordinateSystem newSystem);
   IDiagramLayer addElement(DrawableElement element);
   IDiagramLayer removeElement(DrawableElement element);
   IDiagramLayer toggleAxes();
@@ -40,6 +41,11 @@ class BasicDiagramLayer implements IDiagramLayer {
   
   // All operations return new instances
   // No direct element modification allowed
+  
+  @override
+  IDiagramLayer updateCoordinateSystem(CoordinateSystem newSystem) {
+    // Returns new layer with updated coordinate system
+  }
 }
 ```
 
@@ -97,18 +103,39 @@ layer = layer.toggleAxes();
 
 ### 1. Coordinate System
 - Handles all coordinate transformations
-- Maintains consistent mapping between spaces
+- Maintains consistent mapping between engineering and screen spaces
+- Supports dynamic updates through `updateCoordinateSystem`
 - Used by all elements for rendering
 
-### 2. Elements
-- Self-contained rendering logic
-- Use coordinate system for transformations
-- No direct state modification
+### 2. Element Management
+- Elements are managed through the layer's API
+- Support for various element types (lines, rectangles, text, etc.)
+- Each element handles its own rendering using the layer's coordinate system
+- Elements can be added, removed, or updated through layer methods
 
-### 3. Custom Paint
-- Uses layer for rendering
-- Maintains clean separation of concerns
-- Handles Flutter integration
+### 3. Canvas Integration
+- Direct integration with Flutter's Canvas API
+- Efficient rendering through custom paint
+- Support for various paint styles and configurations
+- Handles proper ordering of element rendering
+
+## Best Practices
+
+1. **State Management**
+   - Always use layer methods for modifications
+   - Maintain immutability for predictable behavior
+   - Use setState() or state management solution of choice
+   - Never modify elements directly
+
+2. **Coordinate System Usage**
+   - Use engineering coordinates for logical positioning
+   - Let the coordinate system handle screen transformations
+   - Update coordinate system for zoom/pan operations
+
+3. **Performance**
+   - Minimize unnecessary layer updates
+   - Use appropriate element types for better performance
+   - Consider element complexity in large diagrams
 
 ## Future Considerations
 1. Style system integration

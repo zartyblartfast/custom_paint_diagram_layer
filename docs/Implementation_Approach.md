@@ -10,15 +10,20 @@ The fundamental principle of our implementation is that **all diagram modificati
 - Provides methods for diagram modification
 - Maintains immutability (each change creates a new instance)
 - Handles coordinate system transformations
-- Manages element rendering
+- Manages element rendering and bounds
+- Supports dynamic coordinate system updates
 
 ### Implementation Pattern
-While we initially discussed a strict controller pattern, our current implementation achieves the core objectives through a simpler approach:
+Our implementation follows a functional, immutable approach that ensures predictable state management:
 
 1. **Diagram Creation**
    ```dart
-   _layer = BasicDiagramLayer(
-     coordinateSystem: CoordinateSystem(...),
+   final layer = BasicDiagramLayer(
+     coordinateSystem: CoordinateSystem(
+       origin: Point(0, 0),
+       scale: 100,
+       alignment: CanvasAlignment.center,
+     ),
      showAxes: true,
    );
    ```
@@ -27,48 +32,115 @@ While we initially discussed a strict controller pattern, our current implementa
    All changes must use diagram layer methods:
    ```dart
    // Correct - using diagram layer methods
-   _layer = _layer.addElement(newElement);
-   _layer = _layer.toggleAxes();
+   layer = layer.addElement(newElement);
+   layer = layer.updateCoordinateSystem(newSystem);
+   layer = layer.toggleAxes();
 
    // Incorrect - bypassing diagram layer
-   _layer.elements.add(newElement);  // Don't do this!
+   layer.elements.add(newElement);  // Don't do this!
    ```
 
 3. **State Management**
-   - Widget state can hold reference to the diagram layer
-   - All modifications create new immutable instances
-   - Changes are reflected through setState() in Flutter widgets
+   ```dart
+   class DiagramWidget extends StatefulWidget {
+     @override
+     _DiagramWidgetState createState() => _DiagramWidgetState();
+   }
+
+   class _DiagramWidgetState extends State<DiagramWidget> {
+     late IDiagramLayer _layer;
+
+     void _updateDiagram(DrawableElement element) {
+       setState(() {
+         _layer = _layer.addElement(element);
+       });
+     }
+
+     void _updateCoordinates(Point<double> origin, double scale) {
+       setState(() {
+         _layer = _layer.updateCoordinateSystem(
+           _layer.coordinateSystem.copyWith(
+             origin: origin,
+             scale: scale,
+           ),
+         );
+       });
+     }
+   }
+   ```
 
 ## Key Benefits
 1. **Encapsulation**: Internal diagram details are hidden
 2. **Consistency**: All changes go through a single interface
 3. **Immutability**: State changes are predictable and traceable
-4. **Flexibility**: Easy to extend with new features while maintaining the core pattern
+4. **Flexibility**: Easy to extend with new features
+5. **Type Safety**: Strong typing throughout the system
+6. **Testing**: Easy to test due to immutable state
 
-## Example: Spring Balance Diagram
-The spring balance implementation demonstrates this pattern:
+## Implementation Examples
 
+### 1. Basic Diagram with Axes
 ```dart
-void _updateSpring(double newLength) {
+final layer = BasicDiagramLayer(
+  coordinateSystem: CoordinateSystem(
+    origin: Point(0, 0),
+    scale: 100,
+    alignment: CanvasAlignment.center,
+  ),
+  showAxes: true,
+)
+.addElement(LineElement(
+  x1: -1, y1: 0,
+  x2: 1, y2: 0,
+  color: Colors.blue,
+))
+.addElement(TextElement(
+  x: 0, y: 1,
+  text: "Example",
+  color: Colors.black,
+));
+```
+
+### 2. Dynamic Coordinate Updates
+```dart
+void _handlePan(DragUpdateDetails details) {
+  final delta = details.delta;
+  final origin = _layer.coordinateSystem.origin;
+  
   setState(() {
-    _springLength = newLength;
-    
-    // Using diagram layer methods for modification
-    _layer = BasicDiagramLayer(
-      coordinateSystem: _layer.coordinateSystem,
-      showAxes: _layer.showAxes,
-    ).addElement(
-      LineElement(
-        x1: 0.5,
-        y1: 0,
-        x2: 0.5,
-        y2: -newLength,
-        color: Colors.black,
+    _layer = _layer.updateCoordinateSystem(
+      _layer.coordinateSystem.copyWith(
+        origin: Point(
+          origin.x + delta.dx,
+          origin.y + delta.dy,
+        ),
       ),
     );
   });
 }
 ```
+
+## Best Practices
+
+1. **State Management**
+   - Use setState() for simple widgets
+   - Consider state management solutions for complex applications
+   - Keep diagram state separate from UI state
+
+2. **Performance**
+   - Minimize unnecessary layer updates
+   - Use appropriate element types
+   - Consider element bounds for efficient rendering
+
+3. **Error Handling**
+   - Validate inputs before creating elements
+   - Handle edge cases in coordinate transformations
+   - Provide meaningful error messages
+
+4. **Testing**
+   - Test layer operations independently
+   - Verify coordinate transformations
+   - Test element rendering behavior
 
 ## Future Considerations
 1. **Controller Pattern**: Could be added later if needed for more complex diagrams

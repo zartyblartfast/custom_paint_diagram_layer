@@ -1,0 +1,42 @@
+{
+  "format": "idg-1.0",
+  "metadata": {
+    "name": "Test Diagram",
+    "created": "2024-01-01T00:00:00.000Z"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "coordinateSystem": {
+      "origin": {"x": 400.0, "y": 300.0},
+      "scale": 1.0,
+      "xRange": {"min": -400.0, "max": 400.0},
+      "yRange": {"min": -300.0, "max": 300.0}
+    }
+  },
+  "elements": [
+    {
+      "type": "line",
+      "x1": -200.0,
+      "y1": -150.0,
+      "x2": 200.0,
+      "y2": 150.0,
+      "style": {
+        "color": "ff0000ff",
+        "strokeWidth": 3.0
+      }
+    },
+    {
+      "type": "line",
+      "x1": -200.0,
+      "y1": 150.0,
+      "x2": 200.0,
+      "y2": -150.0,
+      "style": {
+        "color": "ffff0000",
+        "strokeWidth": 3.0
+      }
+    }
+  ],
+  "controls": {}
+}

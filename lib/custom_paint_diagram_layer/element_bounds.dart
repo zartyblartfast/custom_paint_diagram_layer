@@ -103,10 +103,10 @@ class ElementBounds {
         print('  Dimensions: ${child.width}x${child.height}');
         
         // Rectangle uses top-left coordinates
-        final childMinX = child.x;
-        final childMaxX = child.x + child.width;
-        final childMinY = child.y;
-        final childMaxY = child.y + child.height;
+        final childMinX = group.x + child.x;  // Offset by group position
+        final childMaxX = group.x + child.x + child.width;
+        final childMinY = group.y + child.y;  // Offset by group position
+        final childMaxY = group.y + child.y + child.height;
 
         print('  Calculated bounds:');
         print('    X: $childMinX to $childMaxX (width: ${childMaxX - childMinX})');
@@ -123,10 +123,10 @@ class ElementBounds {
         print('  Radius: ${child.radius}');
         
         // Circle uses center coordinates
-        final childMinX = child.x - child.radius;
-        final childMaxX = child.x + child.radius;
-        final childMinY = child.y - child.radius;
-        final childMaxY = child.y + child.radius;
+        final childMinX = group.x + child.x - child.radius;  // Offset by group position
+        final childMaxX = group.x + child.x + child.radius;
+        final childMinY = group.y + child.y - child.radius;  // Offset by group position
+        final childMaxY = group.y + child.y + child.radius;
 
         print('  Calculated bounds:');
         print('    X: $childMinX to $childMaxX (width: ${childMaxX - childMinX})');

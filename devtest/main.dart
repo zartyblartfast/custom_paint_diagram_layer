@@ -3,6 +3,9 @@ import 'demos/engineering_coords_test.dart';
 import 'demos/spring_balance_demo.dart';
 import 'demos/butterfly_art.dart';
 import 'demos/color_harmony_art.dart';
+import 'demos/kaleidoscope_art.dart';
+import 'demos/signal_waveform_art.dart';
+import 'demos/harmony_wave_art.dart';
 
 void main() {
   runApp(const MyApp());
@@ -69,12 +72,31 @@ class DemoList extends StatelessWidget {
           ListTile(
             title: const Text('Color Harmony Art'),
             subtitle: const Text('Abstract art with harmonious colors'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ColorHarmonyArt()),
-              );
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ColorHarmonyArt()),
+            ),
+          ),
+          ListTile(
+            title: const Text('Kaleidoscope Art'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const KaleidoscopeArt()),
+            ),
+          ),
+          ListTile(
+            title: const Text('Signal Waveform Demo'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SignalWaveformArt()),
+            ),
+          ),
+          ListTile(
+            title: const Text('Musical Harmony Visualization'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HarmonyWaveArt()),
+            ),
           ),
         ],
       ),

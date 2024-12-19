@@ -213,9 +213,9 @@ abstract class DiagramTestBaseState<T extends DiagramTestBase> extends State<T> 
       body: Column(
         children: [
           Expanded(
-            child: DiagramLayerWidget(
-              diagramLayer: diagramLayer,
-              canvasAlignment: CanvasAlignment.center,
+            child: CustomPaint(
+              painter: CustomPaintRenderer(diagramLayer),
+              size: Size.infinite,
             ),
           ),
           Padding(

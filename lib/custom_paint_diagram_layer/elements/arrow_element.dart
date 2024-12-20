@@ -58,6 +58,17 @@ class ArrowElement extends DrawableElement {
     // Draw the main line
     canvas.drawLine(start, end, paint);
 
+    // Draw the arrowhead
+    renderArrowhead(canvas, coordinates, start, end);
+  }
+
+  /// Renders just the arrowhead portion of the arrow
+  void renderArrowhead(Canvas canvas, CoordinateSystem coordinates, Offset start, Offset end) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
     // Calculate arrow head points
     final dx = end.dx - start.dx;
     final dy = end.dy - start.dy;

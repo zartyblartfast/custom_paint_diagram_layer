@@ -4,6 +4,7 @@ export 'arrow_element.dart';
 export 'axis_element.dart';
 export 'bezier_curve_element.dart';
 export 'circle_element.dart';
+export 'connector_element.dart';
 export 'dotted_line_element.dart';
 export 'ellipse_element.dart';
 export 'grid_element.dart';

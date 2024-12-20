@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 import 'dart:math' as math;
+import '../utils/diagram_test_base.dart';
 
-class KaleidoscopeArt extends StatefulWidget {
-  const KaleidoscopeArt({super.key});
+class KaleidoscopeArt extends DiagramTestBase {
+  const KaleidoscopeArt({super.key}) : super(
+    title: 'Kaleidoscope Art',
+    coordRange: 400.0,
+  );
+
   @override
-  State<KaleidoscopeArt> createState() => _KaleidoscopeArtState();
+  DiagramTestBaseState<KaleidoscopeArt> createState() => _KaleidoscopeArtState();
 }
 
-class _KaleidoscopeArtState extends State<KaleidoscopeArt> {
+class _KaleidoscopeArtState extends DiagramTestBaseState<KaleidoscopeArt> {
   late IDiagramLayer diagramLayer;
   double _sliderValue = 0.0;
   double _scale = 1.0;
@@ -20,8 +25,7 @@ class _KaleidoscopeArtState extends State<KaleidoscopeArt> {
   }
 
   IDiagramLayer _createDiagramLayer() {
-    final elements = <DrawableElement>[];
-    _addKaleidoscopeElements(elements);
+    final elements = createElements(_sliderValue);
     
     return BasicDiagramLayer(
       coordinateSystem: CoordinateSystem(
@@ -36,64 +40,72 @@ class _KaleidoscopeArtState extends State<KaleidoscopeArt> {
     );
   }
 
-  void _addKaleidoscopeElements(List<DrawableElement> elements) {
+  @override
+  List<DrawableElement> createElements(double sliderValue) {
+    final elements = <DrawableElement>[];
+    _addKaleidoscopeElements(elements, sliderValue);
+    return elements;
+  }
+
+  @override
+  double get elementHeight => 200.0;  // Height of the kaleidoscope pattern
+
+  void _addKaleidoscopeElements(List<DrawableElement> elements, double sliderValue) {
     const numReflections = 12;  
     const baseRadius = 200.0;  
 
-    void addBasePattern(double angle) {
-      final rotatedAngle = angle + _sliderValue * 2 * math.pi;
+    // Create triangular patterns
+    for (double angle = 0; angle < 2 * math.pi; angle += 2 * math.pi / numReflections) {
+      final rotatedAngle = angle + sliderValue * 2 * math.pi;
       
       for (int i = 0; i < 3; i++) {
         final triangleAngle = rotatedAngle + (i * 2 * math.pi / 3);
-        final points = <Point2D>[
-          Point2D(0, 0),  
+        final points = [
           Point2D(
             baseRadius * math.cos(triangleAngle),
             baseRadius * math.sin(triangleAngle),
           ),
           Point2D(
-            baseRadius * math.cos(triangleAngle + math.pi / 3),
-            baseRadius * math.sin(triangleAngle + math.pi / 3),
+            baseRadius * 0.5 * math.cos(triangleAngle + math.pi / 6),
+            baseRadius * 0.5 * math.sin(triangleAngle + math.pi / 6),
+          ),
+          Point2D(
+            baseRadius * 0.5 * math.cos(triangleAngle - math.pi / 6),
+            baseRadius * 0.5 * math.sin(triangleAngle - math.pi / 6),
           ),
         ];
 
-        final hue = (360 * _sliderValue + i * 120) % 360;
+        final hue = (360 * sliderValue + i * 120) % 360;
         elements.add(PolygonElement(
           points: points,
           x: 0,
           y: 0,
-          fillColor: HSLColor.fromAHSL(1.0, hue, 0.8, 0.5).toColor(),  
-          strokeWidth: 3.0,  
-          color: Colors.black87,  
+          fillColor: HSLColor.fromAHSL(0.7, hue, 1.0, 0.5).toColor(),
+          color: Colors.white,
+          strokeWidth: 2.0,
         ));
-
-        final circleRadius = baseRadius * 0.15;  
-        for (final point in points) {
-          elements.add(CircleElement(
-            x: point.x,
-            y: point.y,
-            radius: circleRadius,
-            fillColor: HSLColor.fromAHSL(0.8, (hue + 60) % 360, 0.9, 0.6).toColor(),
-            color: Colors.black87,  
-            strokeWidth: 2.0,
-          ));
-        }
       }
 
+      // Add decorative circles at triangle vertices
       elements.add(CircleElement(
-        x: 0,
-        y: 0,
-        radius: baseRadius * 0.2,
-        fillColor: HSLColor.fromAHSL(0.9, (360 * _sliderValue) % 360, 1.0, 0.5).toColor(),
+        x: baseRadius * math.cos(rotatedAngle),
+        y: baseRadius * math.sin(rotatedAngle),
+        radius: baseRadius * 0.1,
+        fillColor: HSLColor.fromAHSL(0.8, (360 * sliderValue + 60) % 360, 1.0, 0.5).toColor(),
         color: Colors.white,
         strokeWidth: 2.0,
       ));
     }
 
-    for (int i = 0; i < numReflections; i++) {
-      final angle = (i * 2 * math.pi) / numReflections;
-      addBasePattern(angle);
-    }
+    // Add central circle
+    elements.add(CircleElement(
+      x: 0,
+      y: 0,
+      radius: baseRadius * 0.2,
+      fillColor: HSLColor.fromAHSL(0.9, (360 * sliderValue) % 360, 1.0, 0.5).toColor(),
+      color: Colors.white,
+      strokeWidth: 2.0,
+    ));
   }
 
   void _updateDiagram() {

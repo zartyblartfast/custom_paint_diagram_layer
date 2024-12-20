@@ -20,9 +20,6 @@ class RectangleElement extends DrawableElement {
   /// Only used when fillColor is not null.
   final double fillOpacity;
 
-  /// The radius of the rectangle's corners. If null, sharp corners will be drawn.
-  final double? borderRadius;
-
   /// Creates a new rectangle element.
   /// 
   /// The rectangle's top-left corner is at (x, y) with the specified width and height.
@@ -30,7 +27,6 @@ class RectangleElement extends DrawableElement {
   /// The strokeWidth parameter sets the thickness of the rectangle's border (defaults to 1.0).
   /// The fillColor parameter, if provided, fills the rectangle with that color.
   /// The fillOpacity parameter controls the transparency of the fill (defaults to 1.0).
-  /// The borderRadius parameter, if provided, creates rounded corners with the specified radius.
   const RectangleElement({
     required double x,
     required double y,
@@ -40,9 +36,7 @@ class RectangleElement extends DrawableElement {
     this.strokeWidth = 1.0,
     this.fillColor,
     this.fillOpacity = 1.0,
-    this.borderRadius,
   }) : assert(fillOpacity >= 0.0 && fillOpacity <= 1.0),
-       assert(borderRadius == null || borderRadius >= 0.0),
        super(x: x, y: y, color: color);
 
   @override
@@ -69,26 +63,11 @@ class RectangleElement extends DrawableElement {
       final fillPaint = Paint()
         ..color = fillColor!.withOpacity(fillOpacity)
         ..style = PaintingStyle.fill;
-      
-      if (borderRadius != null) {
-        // Scale the border radius based on the coordinate system's scale
-        final scaledRadius = borderRadius! * coordinateSystem.scale;
-        final rrect = RRect.fromRectAndRadius(rect, Radius.circular(scaledRadius));
-        canvas.drawRRect(rrect, fillPaint);
-      } else {
-        canvas.drawRect(rect, fillPaint);
-      }
+      canvas.drawRect(rect, fillPaint);
     }
     
     // Draw stroke
-    if (borderRadius != null) {
-      // Scale the border radius based on the coordinate system's scale
-      final scaledRadius = borderRadius! * coordinateSystem.scale;
-      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(scaledRadius));
-      canvas.drawRRect(rrect, paint);
-    } else {
-      canvas.drawRect(rect, paint);
-    }
+    canvas.drawRect(rect, paint);
   }
 
   @override
@@ -102,12 +81,9 @@ class RectangleElement extends DrawableElement {
            other.color == color &&
            other.strokeWidth == strokeWidth &&
            other.fillColor == fillColor &&
-           other.fillOpacity == fillOpacity &&
-           other.borderRadius == borderRadius;
+           other.fillOpacity == fillOpacity;
   }
 
   @override
-  int get hashCode => Object.hash(
-    x, y, width, height, color, strokeWidth, fillColor, fillOpacity, borderRadius
-  );
+  int get hashCode => Object.hash(x, y, width, height, color, strokeWidth, fillColor, fillOpacity);
 }

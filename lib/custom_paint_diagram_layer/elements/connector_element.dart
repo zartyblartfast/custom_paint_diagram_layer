@@ -320,9 +320,9 @@ class ConnectorElement extends DrawableElement {
       case Socket.R:
         return Point(group.x + 1, group.y);
       case Socket.T:
-        return Point(group.x, group.y + 1);
+        return Point(group.x, group.y + 0.5);  // Move up from group y by offset
       case Socket.B:
-        return Point(group.x, group.y - 1);
+        return Point(group.x, group.y - 0.5);  // Move down from group y by offset
     }
   }
 }

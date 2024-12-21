@@ -61,16 +61,16 @@ if ((git status --porcelain).Length -gt 0) {
 Write-Host "Building the Flutter web app..." -ForegroundColor Green
 Push-Location "devtest"
 flutter build web -t main.dart
-if (!(Test-Path -Path $BuildDir)) {
+if (!(Test-Path -Path "build\web")) {
     Pop-Location
-    Abort "Build directory '$BuildDir' not found after building. Aborting."
+    Abort "Build directory 'build\web' not found after building. Aborting."
 }
 Pop-Location
 
 # Step 7: Verify build contains required files
 Write-Host "Verifying build output contains required files..." -ForegroundColor Yellow
 foreach ($File in $RequiredFiles) {
-    if (-not (Test-Path -Path (Join-Path $BuildDir $File))) {
+    if (-not (Test-Path -Path (Join-Path "devtest\build\web" $File))) {
         Abort "Required file '$File' not found in build output. Aborting."
     }
 }

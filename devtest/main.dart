@@ -9,6 +9,7 @@ import 'demos/harmony_wave_art.dart';
 import 'demos/fuml_process_flow.dart';
 import 'demos/rounded_rect_test.dart';
 import 'demos/process_flow_diagram.dart';
+import 'demos/horizontal_sundial.dart';
 
 void main() {
   runApp(const MyApp());
@@ -42,6 +43,16 @@ class DemoList extends StatelessWidget {
       ),
       body: ListView(
         children: [
+          ListTile(
+            title: const Text('Horizontal Sundial'),
+            subtitle: const Text('Polar coordinate system with degree markers'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HorizontalSundialDemo()),
+              );
+            },
+          ),
           ListTile(
             title: const Text('Process Flow Diagram'),
             subtitle: const Text('fUML-compliant process flow diagram'),

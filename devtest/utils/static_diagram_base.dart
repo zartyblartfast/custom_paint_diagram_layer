@@ -42,7 +42,8 @@ abstract class StaticDiagramBaseState<T extends StaticDiagramBase> extends State
   // Private fields
   late final GridElement _grid;
   late final CoordinateSystem _coordSystem;
-  bool _showAxes = true;
+  @protected
+  bool showAxes = true;
   
   /// Creates the diagram elements.
   @protected
@@ -102,7 +103,7 @@ abstract class StaticDiagramBaseState<T extends StaticDiagramBase> extends State
       newLayer = newLayer.addElement(element);
     }
     
-    if (_showAxes) {
+    if (showAxes) {
       newLayer = newLayer.toggleAxes();
     }
     
@@ -113,7 +114,7 @@ abstract class StaticDiagramBaseState<T extends StaticDiagramBase> extends State
 
   void _toggleAxes() {
     setState(() {
-      _showAxes = !_showAxes;
+      showAxes = !showAxes;
       _updateElements();
     });
   }
@@ -125,7 +126,7 @@ abstract class StaticDiagramBaseState<T extends StaticDiagramBase> extends State
         title: Text(widget.title),
         actions: [
           IconButton(
-            icon: Icon(_showAxes ? Icons.grid_off : Icons.grid_on),
+            icon: Icon(showAxes ? Icons.grid_off : Icons.grid_on),
             onPressed: _toggleAxes,
             tooltip: 'Toggle Axes',
           ),

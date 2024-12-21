@@ -80,7 +80,10 @@ Write-Host "Checking if branch '$GhPagesBranch' exists..." -ForegroundColor Gree
 $BranchExists = git show-ref refs/heads/$GhPagesBranch 2>$null
 if (-not $BranchExists) {
     Write-Host "Branch '$GhPagesBranch' not found. Creating it..."
-    git branch $GhPagesBranch || Abort "Failed to create '$GhPagesBranch' branch."
+    git branch $GhPagesBranch
+    if ($LASTEXITCODE -ne 0) {
+        Abort "Failed to create '$GhPagesBranch' branch."
+    }
 }
 
 # Step 9: Switch to gh-pages branch
@@ -116,8 +119,15 @@ Copy-Item -Recurse "$BuildDir\*" . -Force -ErrorAction Stop
 $Timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
 Write-Host "Committing and pushing changes to '$GhPagesBranch' branch..." -ForegroundColor Green
 git add .
-git commit -m "Update web app - $Timestamp" || Write-Host "No changes to commit."
-git push origin $GhPagesBranch || Abort "Failed to push changes to '$GhPagesBranch'. Aborting."
+git commit -m "Update web app - $Timestamp"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "No changes to commit."
+}
+
+git push origin $GhPagesBranch
+if ($LASTEXITCODE -ne 0) {
+    Abort "Failed to push changes to '$GhPagesBranch'. Aborting."
+}
 
 # Step 14: Switch back to source branch
 Write-Host "Switching back to branch '$SourceBranch'..." -ForegroundColor Green

@@ -8,8 +8,25 @@ $SourceBranch = "main"
 $FlutterMainFile = "devtest\main.dart"
 $RequiredFiles = @("index.html", "assets", "main.dart.js", "manifest.json")
 $OriginalDirectory = Get-Location  # Store original working directory
+$ExternalTempDir = Join-Path $env:USERPROFILE "FlutterBuildTemp"  # External directory for build files
 $SkipCleanup = $false  # Set to $true to skip the cleanup prompt
 $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
+
+# Verify and setup external temp directory
+Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
+try {
+    if (Test-Path $ExternalTempDir) {
+        Remove-Item -Recurse -Force $ExternalTempDir
+    }
+    New-Item -ItemType Directory -Path $ExternalTempDir -Force | Out-Null
+    if (-not (Test-Path $ExternalTempDir)) {
+        Write-Error "Failed to create external temp directory at: $ExternalTempDir"
+        exit 1
+    }
+} catch {
+    Write-Error "Failed to setup external temp directory: $_"
+    exit 1
+}
 
 function Abort {
     Write-Error "Error: $($args[0])"

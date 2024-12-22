@@ -98,28 +98,27 @@ Example usage in HTML:
 ### How It Works:
 - Expose a JavaScript API in your Flutter app for rendering diagrams dynamically
 - Integrate this API into the target webpage
+- Enable two-way communication between webpage and diagram
+- Allow real-time updates and interactions
 
 ### Steps:
-1. Modify your Flutter app to include a JavaScript interface using dart:js or dart:js_util:
-```dart
-import 'dart:js';
+1. Create JavaScript-accessible functions in your Flutter app using dart:js
+2. Build and host the Flutter web output
+3. Include the Flutter runtime in your webpage
+4. Use the JavaScript API to render and control diagrams
 
-void renderDiagram(String elementId) {
-    final container = document.getElementById(elementId);
-    // Code to render diagram inside `container`.
-}
+For detailed implementation steps, advanced use cases, and code examples, see [JavaScript API Integration Guide](javascript_api_integration.md).
 
-void main() {
-    context['renderDiagram'] = renderDiagram;
-}
-```
-2. Build your Flutter app for the web and host the output (e.g., on GitHub Pages)
-3. Use the JavaScript API to embed the diagram:
+Example usage:
 ```html
 <div id="diagram-container"></div>
-<script src="https://path/to/flutter_app.js"></script>
+<script src="diagram-layer/flutter.js"></script>
+<script src="diagram-layer/main.dart.js"></script>
 <script>
-    renderDiagram('diagram-container');
+    renderDiagram('diagram-container', JSON.stringify({
+        color: "blue",
+        size: "large"
+    }));
 </script>
 ```
 
@@ -127,10 +126,13 @@ void main() {
 - Full control over integration and layout
 - Diagrams remain interactive
 - Can dynamically render diagrams based on API calls
+- Real-time updates and two-way communication
+- Direct DOM integration without iframes
 
 ### Disadvantages:
 - Requires knowledge of both JavaScript and Dart interop
 - Dependency on Flutter runtime
+- More complex initial setup
 
 ## 5. Sharing Diagrams via GitHub Dependencies
 

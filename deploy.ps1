@@ -156,9 +156,17 @@ if ($CurrentBranch -ne $GhPagesBranch) {
 
 # Step 10: Clean up old files safely (exclude .git and .gitignore)
 Write-Host "Cleaning up old files in '$GhPagesBranch' branch..." -ForegroundColor Green
-Get-ChildItem -Recurse -Force | Where-Object {
-    $_.Name -notin @(".git", ".gitignore")
-} | Remove-Item -Recurse -Force -ErrorAction Stop
+Get-ChildItem -Force | Where-Object {
+    # Never touch .git directory
+    if ($_.Name -eq ".git") { return $false }
+    # Keep .gitignore
+    if ($_.Name -eq ".gitignore") { return $false }
+    # Remove everything else at root level
+    return $true
+} | ForEach-Object {
+    Write-Host "Removing $($_.Name)..." -ForegroundColor Yellow
+    Remove-Item -Recurse -Force $_.FullName -ErrorAction Stop
+}
 
 # Step 11: Verify source path for build exists
 Write-Host "Verifying source path for build exists..." -ForegroundColor Yellow

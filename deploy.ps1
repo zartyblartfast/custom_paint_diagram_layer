@@ -12,11 +12,57 @@ $ExternalTempDir = "C:\Users\clive\VSC\FlutterBuildTemp"  # External directory f
 $SkipCleanup = $false  # Set to $true to skip the cleanup prompt
 $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
 
-# Check external temp directory
+# Step 1: Verify external temp directory
 Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
 if (-not (Test-Path $ExternalTempDir)) {
-    Write-Error "External temp directory does not exist at: $ExternalTempDir"
-    exit 1
+    try {
+        New-Item -ItemType Directory -Force -Path $ExternalTempDir | Out-Null
+    }
+    catch {
+        Write-Error "Failed to create external temp directory at: $ExternalTempDir"
+        exit 1
+    }
+}
+
+# Step 2: Ensure Flutter build files are in .gitignore
+Write-Host "Checking .gitignore configuration..." -ForegroundColor Yellow
+$GitIgnorePath = ".gitignore"
+$RequiredIgnores = @(
+    "**/windows/flutter/generated_plugin_registrant.cc",
+    "**/windows/flutter/generated_plugin_registrant.h",
+    "**/windows/flutter/generated_plugins.cmake"
+)
+
+if (-not (Test-Path $GitIgnorePath)) {
+    Write-Host "Creating .gitignore file..." -ForegroundColor Green
+    New-Item -ItemType File -Path $GitIgnorePath | Out-Null
+}
+
+$CurrentIgnores = Get-Content $GitIgnorePath
+$NeedToUpdate = $false
+
+foreach ($ignore in $RequiredIgnores) {
+    if ($CurrentIgnores -notcontains $ignore) {
+        $NeedToUpdate = $true
+        break
+    }
+}
+
+if ($NeedToUpdate) {
+    Write-Host "Adding Flutter build files to .gitignore..." -ForegroundColor Green
+    "`n# Windows Flutter generated files" | Add-Content $GitIgnorePath
+    $RequiredIgnores | Add-Content $GitIgnorePath
+    
+    # Remove these files from git tracking if they exist
+    foreach ($ignore in $RequiredIgnores) {
+        $file = $ignore -replace '\*\*/', ''
+        if (Test-Path $file) {
+            git rm --cached $file 2>$null
+        }
+    }
+    
+    git add $GitIgnorePath
+    git commit -m "Add Windows Flutter generated files to .gitignore" 2>$null
 }
 
 # Check if it's actually external to project directory
@@ -56,7 +102,7 @@ function Abort {
     exit 1
 }
 
-# Step 1: Verify working directory is the project root
+# Step 3: Verify working directory is the project root
 Write-Host "Verifying working directory is the project root..." -ForegroundColor Yellow
 if (-not (Test-Path -Path ".git")) {
     Abort "This script must be run from the root directory of a Git repository. Aborting."
@@ -65,26 +111,26 @@ if (-not (Test-Path -Path $FlutterMainFile)) {
     Abort "File '$FlutterMainFile' not found. Please ensure you are in the correct project directory. Aborting."
 }
 
-# Step 2: Verify Flutter is installed
+# Step 4: Verify Flutter is installed
 Write-Host "Checking if Flutter is installed..." -ForegroundColor Yellow
 if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
     Abort "Flutter is not installed or not in the PATH. Please install it and try again."
 }
 
-# Step 3: Verify source branch exists
+# Step 5: Verify source branch exists
 Write-Host "Checking if branch '$SourceBranch' exists..." -ForegroundColor Yellow
 $SourceBranchExists = git show-ref refs/heads/$SourceBranch 2>$null
 if (-not $SourceBranchExists) {
     Abort "Source branch '$SourceBranch' does not exist. Please specify a valid branch and try again."
 }
 
-# Step 4: Verify we're starting from the source branch
+# Step 6: Verify we're starting from the source branch
 Write-Host "Verifying current branch is '$SourceBranch'..." -ForegroundColor Yellow
 if ($StartingBranch -ne $SourceBranch) {
     Abort "You are not on the '$SourceBranch' branch. Please switch to '$SourceBranch' and try again."
 }
 
-# Step 5: Check for uncommitted changes
+# Step 7: Check for uncommitted changes
 Write-Host "Checking for uncommitted changes..." -ForegroundColor Yellow
 if ((git status --porcelain).Length -gt 0) {
     Abort "There are uncommitted changes in your repository. Please commit or stash them before running this script."
@@ -97,7 +143,7 @@ if ($confirmation -ne 'y') {
     exit 0
 }
 
-# Step 6: Build the Flutter web app
+# Step 8: Build the Flutter web app
 Write-Host "Building the Flutter web app..." -ForegroundColor Green
 Push-Location "devtest"
 flutter build web -t main.dart
@@ -107,7 +153,7 @@ if (!(Test-Path -Path "build\web")) {
 }
 Pop-Location
 
-# Step 7: Verify build contains required files
+# Step 9: Verify build contains required files
 Write-Host "Verifying build output contains required files..." -ForegroundColor Yellow
 foreach ($File in $RequiredFiles) {
     if (-not (Test-Path -Path (Join-Path "devtest\build\web" $File))) {
@@ -115,9 +161,9 @@ foreach ($File in $RequiredFiles) {
     }
 }
 
-# Step 8: Copy build files to external temp directory
+# Step 10: Copy build files to external temp directory
 $TempBuildDir = Join-Path $ExternalTempDir "gh-pages-build"
-Write-Host "`nStep 8: Copying Flutter web build files to temp directory" -ForegroundColor Green
+Write-Host "`nStep 10: Copying Flutter web build files to temp directory" -ForegroundColor Green
 Write-Host "From: $BuildDir" -ForegroundColor Yellow
 Write-Host "To: $TempBuildDir" -ForegroundColor Yellow
 
@@ -145,7 +191,7 @@ Write-Host "`nCopying files..." -ForegroundColor Green
 Copy-Item -Recurse "$BuildDir\*" $TempBuildDir -Force -ErrorAction Stop
 Write-Host "Files successfully copied to: $TempBuildDir" -ForegroundColor Green
 
-# Step 9: Check if gh-pages branch exists
+# Step 11: Check if gh-pages branch exists
 Write-Host "Checking if branch '$GhPagesBranch' exists..." -ForegroundColor Green
 $BranchExists = git show-ref refs/heads/$GhPagesBranch 2>$null
 if (-not $BranchExists) {
@@ -156,7 +202,7 @@ if (-not $BranchExists) {
     }
 }
 
-# Step 10: Switch to gh-pages branch
+# Step 12: Switch to gh-pages branch
 Write-Host "Switching to branch '$GhPagesBranch'..." -ForegroundColor Green
 git checkout $GhPagesBranch
 if ($LASTEXITCODE -ne 0) {
@@ -169,7 +215,7 @@ if ($CurrentBranch -ne $GhPagesBranch) {
     Abort "Failed to switch to '$GhPagesBranch'. Current branch: '$CurrentBranch'. Aborting."
 }
 
-# Step 11: Clean up old files safely (exclude .git and .gitignore)
+# Step 13: Clean up old files safely (exclude .git and .gitignore)
 Write-Host "Cleaning up old files in '$GhPagesBranch' branch..." -ForegroundColor Green
 Get-ChildItem -Force | Where-Object {
     # Never touch .git directory
@@ -183,11 +229,11 @@ Get-ChildItem -Force | Where-Object {
     Remove-Item -Recurse -Force $_.FullName -ErrorAction Stop
 }
 
-# Step 12: Copy new build files from temp directory
+# Step 14: Copy new build files from temp directory
 Write-Host "Copying build files from temp directory to '$GhPagesBranch' branch..." -ForegroundColor Green
 Copy-Item -Recurse "$TempBuildDir\*" . -Force -ErrorAction Stop
 
-# Step 13: Commit and push changes with timestamp
+# Step 15: Commit and push changes with timestamp
 $Timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
 Write-Host "Committing and pushing changes to '$GhPagesBranch' branch..." -ForegroundColor Green
 git add .
@@ -201,7 +247,7 @@ if ($LASTEXITCODE -ne 0) {
     Abort "Failed to push changes to '$GhPagesBranch'. Aborting."
 }
 
-# Step 14: Switch back to source branch
+# Step 16: Switch back to source branch
 Write-Host "Switching back to branch '$SourceBranch'..." -ForegroundColor Green
 git checkout $SourceBranch
 if ($LASTEXITCODE -ne 0) {
@@ -214,7 +260,7 @@ if ($CurrentBranch -ne $SourceBranch) {
     Abort "Failed to switch back to '$SourceBranch'. Current branch: '$CurrentBranch'. Aborting."
 }
 
-# Step 15: Optional cleanup of generated files
+# Step 17: Optional cleanup of generated files
 if (-not $SkipCleanup) {
     Write-Host "Performing optional cleanup of generated files..." -ForegroundColor Yellow
     if ((Read-Host "Do you want to clean up generated files? (y/n)") -eq "y") {

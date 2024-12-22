@@ -118,6 +118,12 @@ foreach ($File in $RequiredFiles) {
 # Step 8: Copy build files to external temp directory
 Write-Host "Copying build files to external temp directory..." -ForegroundColor Green
 $TempBuildDir = Join-Path $ExternalTempDir "gh-pages-build"
+Write-Host "About to clear contents of temp directory: $TempBuildDir" -ForegroundColor Yellow
+$confirmation = Read-Host "Do you want to continue? (y/n)"
+if ($confirmation -ne 'y') {
+    Write-Host "Operation cancelled by user." -ForegroundColor Yellow
+    exit 0
+}
 Get-ChildItem -Path $TempBuildDir -Recurse | Remove-Item -Force -Recurse
 Copy-Item -Recurse "$BuildDir\*" $TempBuildDir -Force -ErrorAction Stop
 Write-Host "Build files backed up to: $TempBuildDir" -ForegroundColor Green

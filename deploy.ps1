@@ -8,24 +8,32 @@ $SourceBranch = "main"
 $FlutterMainFile = "devtest\main.dart"
 $RequiredFiles = @("index.html", "assets", "main.dart.js", "manifest.json")
 $OriginalDirectory = Get-Location  # Store original working directory
-$ExternalTempDir = Join-Path $env:USERPROFILE "FlutterBuildTemp"  # External directory for build files
+$ExternalTempDir = "C:\Users\clive\VSC\FlutterBuildTemp"  # External directory for build files
 $SkipCleanup = $false  # Set to $true to skip the cleanup prompt
 $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
 
-# Verify and setup external temp directory
-Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
-try {
-    if (Test-Path $ExternalTempDir) {
-        Remove-Item -Recurse -Force $ExternalTempDir
-    }
-    New-Item -ItemType Directory -Path $ExternalTempDir -Force | Out-Null
-    if (-not (Test-Path $ExternalTempDir)) {
-        Write-Error "Failed to create external temp directory at: $ExternalTempDir"
+# Check if external directory exists
+if (-not (Test-Path $ExternalTempDir)) {
+    Write-Error "External temp directory does not exist at: $ExternalTempDir"
+    exit 1
+}
+
+# Check if it's actually external to project directory
+if ((Resolve-Path $ExternalTempDir).Path.StartsWith((Resolve-Path $ProjectRoot).Path)) {
+    Write-Error "Temp directory must be outside the project directory"
+    exit 1
+}
+
+# Check for uncommitted changes in gh-pages branch
+$CurrentBranch = git branch --show-current
+git checkout $GhPagesBranch 2>$null
+if ($?) {  # Only check if branch exists
+    $UncommittedChanges = git status --porcelain
+    git checkout $CurrentBranch  # Return to original branch
+    if ($UncommittedChanges) {
+        Write-Error "There are uncommitted changes in the gh-pages branch. Please commit or stash them first."
         exit 1
     }
-} catch {
-    Write-Error "Failed to setup external temp directory: $_"
-    exit 1
 }
 
 function Abort {
@@ -72,6 +80,13 @@ if ($OriginalBranch -ne $SourceBranch) {
 Write-Host "Checking for uncommitted changes..." -ForegroundColor Yellow
 if ((git status --porcelain).Length -gt 0) {
     Abort "There are uncommitted changes in your repository. Please commit or stash them before running this script."
+}
+
+# Confirmation before major operations
+$confirmation = Read-Host "This script will deploy to GitHub Pages. Continue? (y/n)"
+if ($confirmation -ne 'y') {
+    Write-Host "Operation cancelled by user." -ForegroundColor Yellow
+    exit 0
 }
 
 # Step 6: Build the Flutter web app

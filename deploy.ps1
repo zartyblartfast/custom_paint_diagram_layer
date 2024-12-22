@@ -11,6 +11,7 @@ Push-Location  # Remember where we started
 $ExternalTempDir = "C:\Users\clive\VSC\FlutterBuildTemp"  # External directory for build files
 $SkipCleanup = $false  # Set to $true to skip the cleanup prompt
 $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
+$BaseHref = "/custom_paint_diagram_layer/"  # Base href for GitHub Pages
 
 # Step 1: Verify external temp directory
 Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
@@ -141,7 +142,7 @@ if ($confirmation -ne 'y') {
 # Step 8: Build the Flutter web app
 Write-Host "Building the Flutter web app..." -ForegroundColor Green
 Push-Location "devtest"
-flutter build web -t main.dart
+flutter build web -t main.dart --base-href $BaseHref
 if (!(Test-Path -Path "build\web")) {
     Pop-Location
     Abort "Build directory 'build\web' not found after building. Aborting."

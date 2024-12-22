@@ -13,6 +13,30 @@ $SkipCleanup = $false  # Set to $true to skip the cleanup prompt
 $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
 $BaseHref = "/custom_paint_diagram_layer/"  # Base href for GitHub Pages
 
+# Display configuration summary
+Write-Host "`nDeployment Configuration Summary:" -ForegroundColor Cyan
+Write-Host "--------------------------------" -ForegroundColor Cyan
+Write-Host "Project Root:`t`t$ProjectRoot" -ForegroundColor Yellow
+Write-Host "Build Directory:`t`t$BuildDir" -ForegroundColor Yellow
+Write-Host "Source Branch:`t`t$SourceBranch" -ForegroundColor Yellow
+Write-Host "Deploy Branch:`t`t$GhPagesBranch" -ForegroundColor Yellow
+Write-Host "Main Flutter File:`t$FlutterMainFile" -ForegroundColor Yellow
+Write-Host "External Temp Dir:`t$ExternalTempDir" -ForegroundColor Yellow
+Write-Host "Base Href:`t`t$BaseHref" -ForegroundColor Yellow
+Write-Host "Deployed URL:`t`t$DeployedURL" -ForegroundColor Yellow
+Write-Host "Skip Cleanup:`t`t$SkipCleanup" -ForegroundColor Yellow
+Write-Host "`nRequired Files:" -ForegroundColor Yellow
+$RequiredFiles | ForEach-Object { Write-Host "  - $_" -ForegroundColor Yellow }
+Write-Host "--------------------------------`n" -ForegroundColor Cyan
+
+# Configuration confirmation
+$configConfirmation = Read-Host "Please review the configuration above. Continue? (y/n)"
+if ($configConfirmation -ne 'y') {
+    Write-Host "Operation cancelled by user." -ForegroundColor Yellow
+    Pop-Location
+    exit 0
+}
+
 # Step 1: Verify external temp directory
 Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
 if (-not (Test-Path $ExternalTempDir)) {

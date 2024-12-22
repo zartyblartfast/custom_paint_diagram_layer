@@ -116,9 +116,12 @@ foreach ($File in $RequiredFiles) {
 }
 
 # Step 8: Copy build files to external temp directory
-Write-Host "Copying build files to external temp directory..." -ForegroundColor Green
 $TempBuildDir = Join-Path $ExternalTempDir "gh-pages-build"
-Write-Host "About to clear contents of temp directory: $TempBuildDir" -ForegroundColor Yellow
+Write-Host "`nStep 8: Copying Flutter web build files to temp directory" -ForegroundColor Green
+Write-Host "From: $BuildDir" -ForegroundColor Yellow
+Write-Host "To: $TempBuildDir" -ForegroundColor Yellow
+
+Write-Host "`nAbout to clear contents of temp directory: $TempBuildDir" -ForegroundColor Yellow
 $confirmation = Read-Host "Do you want to continue? (y/n)"
 if ($confirmation -ne 'y') {
     Write-Host "Operation cancelled by user." -ForegroundColor Yellow
@@ -126,12 +129,11 @@ if ($confirmation -ne 'y') {
 }
 Get-ChildItem -Path $TempBuildDir -Recurse | Remove-Item -Force -Recurse
 
-# Show what will be copied
-Write-Host "`nFiles to be copied from build directory:" -ForegroundColor Yellow
+Write-Host "`nFiles to be copied from: $BuildDir" -ForegroundColor Yellow
 Get-ChildItem -Path $BuildDir -Recurse | ForEach-Object {
     Write-Host "  $($_.FullName.Replace($BuildDir, ''))"
 }
-Write-Host ""
+Write-Host "`nThese files will be copied to: $TempBuildDir" -ForegroundColor Yellow
 
 $confirmation = Read-Host "Do you want to proceed with copying these files? (y/n)"
 if ($confirmation -ne 'y') {
@@ -139,8 +141,9 @@ if ($confirmation -ne 'y') {
     exit 0
 }
 
+Write-Host "`nCopying files..." -ForegroundColor Green
 Copy-Item -Recurse "$BuildDir\*" $TempBuildDir -Force -ErrorAction Stop
-Write-Host "Build files backed up to: $TempBuildDir" -ForegroundColor Green
+Write-Host "Files successfully copied to: $TempBuildDir" -ForegroundColor Green
 
 # Step 9: Check if gh-pages branch exists
 Write-Host "Checking if branch '$GhPagesBranch' exists..." -ForegroundColor Green

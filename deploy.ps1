@@ -15,13 +15,8 @@ $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
 # Step 1: Verify external temp directory
 Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
 if (-not (Test-Path $ExternalTempDir)) {
-    try {
-        New-Item -ItemType Directory -Force -Path $ExternalTempDir | Out-Null
-    }
-    catch {
-        Write-Error "Failed to create external temp directory at: $ExternalTempDir"
-        exit 1
-    }
+    Write-Error "External temp directory does not exist at: $ExternalTempDir"
+    exit 1
 }
 
 # Step 2: Ensure Flutter build files are in .gitignore

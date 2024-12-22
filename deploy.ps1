@@ -125,6 +125,20 @@ if ($confirmation -ne 'y') {
     exit 0
 }
 Get-ChildItem -Path $TempBuildDir -Recurse | Remove-Item -Force -Recurse
+
+# Show what will be copied
+Write-Host "`nFiles to be copied from build directory:" -ForegroundColor Yellow
+Get-ChildItem -Path $BuildDir -Recurse | ForEach-Object {
+    Write-Host "  $($_.FullName.Replace($BuildDir, ''))"
+}
+Write-Host ""
+
+$confirmation = Read-Host "Do you want to proceed with copying these files? (y/n)"
+if ($confirmation -ne 'y') {
+    Write-Host "Operation cancelled by user." -ForegroundColor Yellow
+    exit 0
+}
+
 Copy-Item -Recurse "$BuildDir\*" $TempBuildDir -Force -ErrorAction Stop
 Write-Host "Build files backed up to: $TempBuildDir" -ForegroundColor Green
 

@@ -7,12 +7,13 @@ $GhPagesBranch = "gh-pages"
 $SourceBranch = "main"
 $FlutterMainFile = "devtest\main.dart"
 $RequiredFiles = @("index.html", "assets", "main.dart.js", "manifest.json")
-$OriginalDirectory = Get-Location  # Store original working directory
+Push-Location  # Remember where we started
 $ExternalTempDir = "C:\Users\clive\VSC\FlutterBuildTemp"  # External directory for build files
 $SkipCleanup = $false  # Set to $true to skip the cleanup prompt
 $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
 
-# Check if external directory exists
+# Check external temp directory
+Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
 if (-not (Test-Path $ExternalTempDir)) {
     Write-Error "External temp directory does not exist at: $ExternalTempDir"
     exit 1
@@ -31,42 +32,27 @@ $StartingBranch = git branch --show-current
 Write-Host "Checking gh-pages branch for uncommitted changes..." -ForegroundColor Yellow
 $GhPagesExists = git show-ref refs/heads/$GhPagesBranch 2>$null
 if ($GhPagesExists) {
-    git stash push -m "Temporary stash before checking gh-pages"
+    # Store current branch
+    $CurrentBranch = git branch --show-current
+    
+    # Check gh-pages branch
     git checkout $GhPagesBranch
     $UncommittedChanges = git status --porcelain
-    git checkout $StartingBranch
-    git stash pop
+    git checkout $CurrentBranch
+    
     if ($UncommittedChanges) {
-        # Make sure we're back on main branch
-        if ($StartingBranch -ne "main") {
-            git checkout main
-        }
         Write-Error "There are uncommitted changes in the gh-pages branch. Please commit or stash them first."
         exit 1
     }
 }
 
-# Verify and setup external temp directory
-# Check if external directory exists
-if (-not (Test-Path $ExternalTempDir)) {
-    Write-Error "External temp directory does not exist at: $ExternalTempDir"
-    exit 1
-}
-
-# Check if it's actually external to project directory
-if ((Resolve-Path $ExternalTempDir).Path.StartsWith((Resolve-Path $ProjectRoot).Path)) {
-    Write-Error "Temp directory must be outside the project directory"
-    exit 1
-}
-
 function Abort {
     Write-Error "Error: $($args[0])"
-    # Attempt to switch back to the original branch if an error occurs
-    if ($OriginalBranch) {
-        git checkout $OriginalBranch
+    # Attempt to switch back to the starting branch if an error occurs
+    if ($StartingBranch) {
+        git checkout $StartingBranch
     }
-    # Restore original directory
-    Set-Location $OriginalDirectory
+    Pop-Location
     exit 1
 }
 
@@ -94,8 +80,7 @@ if (-not $SourceBranchExists) {
 
 # Step 4: Verify we're starting from the source branch
 Write-Host "Verifying current branch is '$SourceBranch'..." -ForegroundColor Yellow
-$OriginalBranch = git branch --show-current
-if ($OriginalBranch -ne $SourceBranch) {
+if ($StartingBranch -ne $SourceBranch) {
     Abort "You are not on the '$SourceBranch' branch. Please switch to '$SourceBranch' and try again."
 }
 
@@ -130,7 +115,14 @@ foreach ($File in $RequiredFiles) {
     }
 }
 
-# Step 8: Check if gh-pages branch exists
+# Step 8: Copy build files to external temp directory
+Write-Host "Copying build files to external temp directory..." -ForegroundColor Green
+$TempBuildDir = Join-Path $ExternalTempDir "gh-pages-build"
+Get-ChildItem -Path $TempBuildDir -Recurse | Remove-Item -Force -Recurse
+Copy-Item -Recurse "$BuildDir\*" $TempBuildDir -Force -ErrorAction Stop
+Write-Host "Build files backed up to: $TempBuildDir" -ForegroundColor Green
+
+# Step 9: Check if gh-pages branch exists
 Write-Host "Checking if branch '$GhPagesBranch' exists..." -ForegroundColor Green
 $BranchExists = git show-ref refs/heads/$GhPagesBranch 2>$null
 if (-not $BranchExists) {
@@ -141,7 +133,7 @@ if (-not $BranchExists) {
     }
 }
 
-# Step 9: Switch to gh-pages branch
+# Step 10: Switch to gh-pages branch
 Write-Host "Switching to branch '$GhPagesBranch'..." -ForegroundColor Green
 git checkout $GhPagesBranch
 if ($LASTEXITCODE -ne 0) {
@@ -154,7 +146,7 @@ if ($CurrentBranch -ne $GhPagesBranch) {
     Abort "Failed to switch to '$GhPagesBranch'. Current branch: '$CurrentBranch'. Aborting."
 }
 
-# Step 10: Clean up old files safely (exclude .git and .gitignore)
+# Step 11: Clean up old files safely (exclude .git and .gitignore)
 Write-Host "Cleaning up old files in '$GhPagesBranch' branch..." -ForegroundColor Green
 Get-ChildItem -Force | Where-Object {
     # Never touch .git directory
@@ -168,15 +160,9 @@ Get-ChildItem -Force | Where-Object {
     Remove-Item -Recurse -Force $_.FullName -ErrorAction Stop
 }
 
-# Step 11: Verify source path for build exists
-Write-Host "Verifying source path for build exists..." -ForegroundColor Yellow
-if (-not (Test-Path -Path $BuildDir)) {
-    Abort "Build directory '$BuildDir' does not exist. Please check the build output."
-}
-
-# Step 12: Copy new build files
-Write-Host "Copying new build files to '$GhPagesBranch' branch..." -ForegroundColor Green
-Copy-Item -Recurse "$BuildDir\*" . -Force -ErrorAction Stop
+# Step 12: Copy new build files from temp directory
+Write-Host "Copying build files from temp directory to '$GhPagesBranch' branch..." -ForegroundColor Green
+Copy-Item -Recurse "$TempBuildDir\*" . -Force -ErrorAction Stop
 
 # Step 13: Commit and push changes with timestamp
 $Timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
@@ -221,4 +207,4 @@ Write-Host "Deployment to GitHub Pages completed successfully!" -ForegroundColor
 Write-Host "You can view your site at: $DeployedURL" -ForegroundColor Cyan
 
 # Restore original directory
-Set-Location $OriginalDirectory
+Pop-Location

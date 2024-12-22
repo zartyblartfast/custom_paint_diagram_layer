@@ -259,8 +259,14 @@ if ($CurrentBranch -ne $SourceBranch) {
 if (-not $SkipCleanup) {
     Write-Host "Performing optional cleanup of generated files..." -ForegroundColor Yellow
     if ((Read-Host "Do you want to clean up generated files? (y/n)") -eq "y") {
-        Remove-Item -Recurse -Force $BuildDir -ErrorAction Stop
-        Write-Host "Cleaned up generated files." -ForegroundColor Green
+        $AbsoluteBuildDir = Join-Path $ProjectRoot $BuildDir
+        if (Test-Path $AbsoluteBuildDir) {
+            Remove-Item -Recurse -Force $AbsoluteBuildDir -ErrorAction Stop
+            Write-Host "Cleaned up generated files." -ForegroundColor Green
+        } else {
+            Write-Host "Build directory not found at: $AbsoluteBuildDir" -ForegroundColor Yellow
+            Write-Host "It may have already been cleaned up." -ForegroundColor Green
+        }
     }
 } else {
     Write-Host "Skipping cleanup of generated files." -ForegroundColor Yellow

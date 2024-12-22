@@ -1,17 +1,37 @@
 # Enhanced Deployment Script for Flutter Web App to GitHub Pages (PowerShell)
 
 # Define variables
-$ProjectRoot = (Get-Location).Path
-$BuildDir = "devtest\build\web"
-$GhPagesBranch = "gh-pages"
-$SourceBranch = "main"
-$FlutterMainFile = "devtest\main.dart"
-$RequiredFiles = @("index.html", "assets", "main.dart.js", "manifest.json")
-Push-Location  # Remember where we started
-$ExternalTempDir = "C:\Users\clive\VSC\FlutterBuildTemp"  # External directory for build files
-$SkipCleanup = $false  # Set to $true to skip the cleanup prompt
+# The URL where your site will be published
 $DeployedURL = "https://zartyblartfast.github.io/custom_paint_diagram_layer"
-$BaseHref = "/custom_paint_diagram_layer/"  # Base href for GitHub Pages
+
+# The base href for GitHub Pages - must match repository name and have leading/trailing slashes
+$BaseHref = "/custom_paint_diagram_layer/"
+
+# Git branch configuration
+$SourceBranch = "main"              # Source branch containing your Flutter app code
+$GhPagesBranch = "gh-pages"         # Branch where the built web app will be deployed
+
+# Flutter build configuration
+$FlutterMainFile = "devtest\main.dart"  # Entry point for your Flutter application
+$BuildDir = "devtest\build\web"         # Directory where Flutter will output the web build
+
+# Files that must exist in the build output
+$RequiredFiles = @(
+    "index.html",      # Main HTML file
+    "assets",          # Directory containing app assets
+    "main.dart.js",    # Compiled Dart code
+    "manifest.json"    # Web app manifest
+)
+
+# External directory for temporary build files (must be outside project directory)
+$ExternalTempDir = "C:\Users\clive\VSC\FlutterBuildTemp"
+
+# Set to $true to skip the cleanup prompt at the end of deployment
+$SkipCleanup = $false
+
+# Working directory management
+$ProjectRoot = (Get-Location).Path   # Store the starting directory
+Push-Location                        # Remember where we started
 
 # Display configuration summary
 Write-Host "`nDeployment Configuration Summary:" -ForegroundColor Cyan

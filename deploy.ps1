@@ -24,16 +24,39 @@ if ((Resolve-Path $ExternalTempDir).Path.StartsWith((Resolve-Path $ProjectRoot).
     exit 1
 }
 
-# Check for uncommitted changes in gh-pages branch
-$CurrentBranch = git branch --show-current
-git checkout $GhPagesBranch 2>$null
-if ($?) {  # Only check if branch exists
+# Store the starting branch
+$StartingBranch = git branch --show-current
+
+# Check for uncommitted changes in gh-pages branch if it exists
+Write-Host "Checking gh-pages branch for uncommitted changes..." -ForegroundColor Yellow
+$GhPagesExists = git show-ref refs/heads/$GhPagesBranch 2>$null
+if ($GhPagesExists) {
+    git stash push -m "Temporary stash before checking gh-pages"
+    git checkout $GhPagesBranch
     $UncommittedChanges = git status --porcelain
-    git checkout $CurrentBranch  # Return to original branch
+    git checkout $StartingBranch
+    git stash pop
     if ($UncommittedChanges) {
+        # Make sure we're back on main branch
+        if ($StartingBranch -ne "main") {
+            git checkout main
+        }
         Write-Error "There are uncommitted changes in the gh-pages branch. Please commit or stash them first."
         exit 1
     }
+}
+
+# Verify and setup external temp directory
+# Check if external directory exists
+if (-not (Test-Path $ExternalTempDir)) {
+    Write-Error "External temp directory does not exist at: $ExternalTempDir"
+    exit 1
+}
+
+# Check if it's actually external to project directory
+if ((Resolve-Path $ExternalTempDir).Path.StartsWith((Resolve-Path $ProjectRoot).Path)) {
+    Write-Error "Temp directory must be outside the project directory"
+    exit 1
 }
 
 function Abort {

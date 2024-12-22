@@ -57,12 +57,40 @@ if ($configConfirmation -ne 'y') {
     exit 0
 }
 
-# Step 1: Verify external temp directory
-Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
-if (-not (Test-Path $ExternalTempDir)) {
-    Write-Error "External temp directory does not exist at: $ExternalTempDir"
+# Function definitions
+function Abort {
+    Write-Error "Error: $($args[0])"
+    # Attempt to switch back to the starting branch if an error occurs
+    if ($StartingBranch) {
+        git checkout $StartingBranch
+    }
+    Pop-Location
     exit 1
 }
+
+function Verify-ExternalTempDir {
+    param (
+        [string]$TempDir,
+        [string]$ProjectPath
+    )
+    
+    Write-Host "Verifying external temp directory..." -ForegroundColor Yellow
+    
+    # Check if directory exists
+    if (-not (Test-Path $TempDir)) {
+        Abort "External temp directory does not exist at: $TempDir"
+    }
+    
+    # Check if it's outside project directory
+    if ((Resolve-Path $TempDir).Path.StartsWith((Resolve-Path $ProjectPath).Path)) {
+        Abort "Temp directory must be outside the project directory"
+    }
+    
+    Write-Host "External temp directory verified." -ForegroundColor Green
+}
+
+# Step 1: Verify external temp directory
+Verify-ExternalTempDir -TempDir $ExternalTempDir -ProjectPath $ProjectRoot
 
 # Step 2: Ensure Flutter build files are in .gitignore
 Write-Host "Checking .gitignore configuration..." -ForegroundColor Yellow
@@ -105,12 +133,6 @@ if ($NeedToUpdate) {
     git commit -m "Add Windows Flutter generated files to .gitignore" 2>$null
 }
 
-# Check if it's actually external to project directory
-if ((Resolve-Path $ExternalTempDir).Path.StartsWith((Resolve-Path $ProjectRoot).Path)) {
-    Write-Error "Temp directory must be outside the project directory"
-    exit 1
-}
-
 # Store the starting branch
 $StartingBranch = git branch --show-current
 
@@ -130,16 +152,6 @@ if ($GhPagesExists) {
         Write-Error "There are uncommitted changes in the gh-pages branch. Please commit or stash them first."
         exit 1
     }
-}
-
-function Abort {
-    Write-Error "Error: $($args[0])"
-    # Attempt to switch back to the starting branch if an error occurs
-    if ($StartingBranch) {
-        git checkout $StartingBranch
-    }
-    Pop-Location
-    exit 1
 }
 
 # Step 3: Verify working directory is the project root

@@ -65,23 +65,33 @@ Future<void> exportDiagramToImage() async {
 ### How It Works:
 - Use Flutter's web build to generate a custom web component (a reusable, self-contained element)
 - Integrate the web component into any webpage
+- Encapsulate the diagram logic within a custom HTML element
 
 ### Steps:
-1. Build your diagram layer with Flutter for the web
-2. Wrap the diagram rendering logic in a custom web component
-3. Use the custom web component in your HTML:
+1. Prepare your Flutter app for web component integration
+2. Build and modify the web output
+3. Create a custom element wrapper
+4. Deploy and integrate into target webpages
+
+For detailed implementation steps and code examples, see [Web Component Integration Guide](web_component_guide.md).
+
+Example usage in HTML:
 ```html
-<script type="module" src="https://path/to/diagram_component.js"></script>
-<diagram-layer id="custom-diagram"></diagram-layer>
+<script type="module" src="diagram-layer/flutter.js"></script>
+<script src="diagram-layer/main.dart.js"></script>
+<diagram-layer></diagram-layer>
 ```
 
 ### Advantages:
 - Diagrams are interactive and fully functional
 - Easy reuse across multiple webpages
+- Clean encapsulation of Flutter logic
+- Modular and maintainable
 
 ### Disadvantages:
-- Requires more effort to package your diagram as a web component
-- May increase the webpage size due to embedded Flutter runtime
+- Requires more setup effort initially
+- Includes Flutter runtime overhead
+- Needs careful management of web assets
 
 ## 4. Embedding Diagrams via JavaScript API
 

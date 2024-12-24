@@ -2,6 +2,30 @@
 
 ## Core Components
 
+[DiagramRendererBase]<abstract>
+    + config: DiagramConfig
+    + controller: DiagramController
+    + createCoordinateSystem(): CoordinateSystem
+    + createElements(): List<DrawableElement>
+    + updateElements(): void
+    + buildDiagramWidget(context): Widget
+    + updateConfig(newConfig): DiagramRendererBase
+
+[DiagramController]
+    - _values: Map<String, dynamic>
+    + getValue<T>(key): T?
+    + setValue(key, value): void
+    + setValues(Map<String, dynamic>): void
+    + onValuesChanged: Function?
+
+[DiagramControllerMixin]
+    + controller: DiagramController
+    + initializeController(defaultValues, onValuesChanged): void
+    + updateFromController(): void
+
+[DiagramMigrationHelper]<mixin>
+    + updateFromSlider(value): void
+
 [IDiagramLayer]<interface>
     + coordinateSystem: CoordinateSystem
     + elements: List<DrawableElement>
@@ -18,8 +42,6 @@
     + addElement(element): BasicDiagramLayer
     + removeElement(element): BasicDiagramLayer
     + render(canvas, size): void
-    - _addAxesToDiagram(): IDiagramLayer
-    - _removeAxes(): IDiagramLayer
 
 [DrawableElement]<interface>
     + render(canvas: Canvas, coordinateSystem: CoordinateSystem): void
@@ -34,12 +56,19 @@
     + mapValueToDiagram(x, y): Offset
     + copyWith(origin?, scale?): CoordinateSystem
 
-[CanvasAlignment]
-    - canvasSize: Size
-    - coordinateSystem: CoordinateSystem
-    + alignCenter(): void
-    + alignBottomCenter(): void
-    + updateScale(): void
+[DiagramConfig]
+    + width: double
+    + height: double
+    + backgroundColor: Color
+    + showAxes: bool
+    + copyWith(): DiagramConfig
+
+## Integration Components
+
+[ButterflyArtDemo]<widget>
+    + useStandalone: bool
+    + showControls: bool
+    + createState(): State
 
 [CustomPaintRenderer]
     - layer: IDiagramLayer
@@ -55,13 +84,8 @@
     |    |-- EllipseElement
     |    |-- LineElement
     |    |-- PolygonElement
-    |    |-- ParallelogramElement
-    |    |-- IsoscelesTriangleElement
-    |    |-- RightTriangleElement
-    |    |-- StarElement
-    |    |-- ArcElement
     |    |-- BezierCurveElement
-    |    `-- DottedLineElement
+    |    `-- [Other Shape Elements...]
     |
     +-- [CompositeElements]
     |    |-- GroupElement
@@ -70,47 +94,56 @@
     +-- [TextElements]
     |    `-- TextElement
 
-## Utility Classes
+## Integration Patterns
 
-[ElementBounds]
-    + element: DrawableElement
-    + coordinateSystem: CoordinateSystem
-    + getBounds(): Rect
-    + isOutsideDiagramBounds(): bool
+[StandalonePattern]
+    MaterialApp
+        |-- ButterflyArtDemo(useStandalone: true)
+            |-- DiagramRenderer
+                |-- CustomPaintRenderer
+                    |-- IDiagramLayer
 
-[CoordinateMapper]
-    + coordSystem: CoordinateSystem
-    + mapSliderToPosition(sliderValue, isXAxis): double
-    + mapSliderToSafePosition(sliderValue, isXAxis, currentGroup): double
+[EmbeddedPattern]
+    MaterialApp
+        |-- Scaffold
+            |-- AppBar
+            |-- ButterflyArtDemo(useStandalone: false)
+                |-- DiagramRenderer
+                    |-- CustomPaintRenderer
+                        |-- IDiagramLayer
+                |-- Controls
 
 ## Relationships
+
+DiagramRendererBase <|-- SpecificDiagramImplementation
+DiagramRendererBase o-- DiagramController
+DiagramRendererBase o-- IDiagramLayer
+DiagramRendererBase o-- DiagramConfig
+
+DiagramRendererBase <|-- DiagramControllerMixin
+DiagramRendererBase <|-- DiagramMigrationHelper
 
 IDiagramLayer <|-- BasicDiagramLayer
 IDiagramLayer *-- CoordinateSystem
 IDiagramLayer o-- DrawableElement
+
 CustomPaintRenderer --> IDiagramLayer
-CanvasAlignment --> CoordinateSystem
-ElementBounds --> DrawableElement
-ElementBounds --> CoordinateSystem
-CoordinateMapper --> CoordinateSystem
 
 ## State Flow
 
-[Widget State]
+[User Interaction]
     |
     v
-[IDiagramLayer] ---> [New IDiagramLayer]
-    |                      |
-    |                      |
-    v                      v
-[Elements] -----> [New Elements]
-
-## Implementation Notes
-
-1. All diagram layer methods return new instances (immutable)
-2. Coordinate system handles all transformations
-3. Elements are self-contained for rendering
-4. Canvas alignment manages scaling and positioning
-5. Group elements support nested transformations
-6. Elements support fill and stroke styles
-7. Utility classes help with bounds checking and coordinate mapping
+[DiagramController]
+    |
+    v
+[DiagramRendererBase]
+    |
+    v
+[IDiagramLayer]
+    |
+    v
+[DrawableElements]
+    |
+    v
+[Canvas Rendering]

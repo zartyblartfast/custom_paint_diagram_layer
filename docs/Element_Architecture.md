@@ -16,7 +16,25 @@ abstract class DrawableElement {
   final double y;
   final Color color;
 
+  const DrawableElement({
+    required this.x,
+    required this.y,
+    this.color = Colors.black,
+  });
+
   void render(Canvas canvas, CoordinateSystem coordinateSystem);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is DrawableElement &&
+           other.x == x &&
+           other.y == y &&
+           other.color == color;
+  }
+
+  @override
+  int get hashCode => Object.hash(x, y, color);
 }
 ```
 
@@ -35,199 +53,214 @@ The system includes several types of elements:
 ```
 DrawableElement (abstract)
 ├── Basic Shapes
-│   ├── LineElement
-│   ├── RectangleElement
+│   ├── CircleElement
 │   ├── EllipseElement
+│   ├── RectangleElement
 │   ├── RightTriangleElement
 │   ├── IsoscelesTriangleElement
 │   ├── ParallelogramElement
+│   ├── PolygonElement
 │   └── StarElement
+├── Lines and Connectors
+│   ├── LineElement
+│   ├── DottedLineElement
+│   ├── ConnectorElement
+│   ├── ArrowElement
+│   └── ArrowheadElement
 ├── Curves
 │   ├── BezierCurveElement
 │   ├── ArcElement
 │   └── SpiralElement
+├── Measurement and Reference
+│   ├── AxisElement
+│   ├── GridElement
+│   └── RulerElement
 ├── Groups
 │   └── GroupElement (contains child elements)
-├── Measurement
-│   ├── RulerElement
-│   └── GridElement
-└── Text
-    └── TextElement
+└── Media
+    ├── TextElement
+    └── ImageElement
 ```
 
 ### 4. Element Properties
 
-Common properties across elements:
-- Position (x, y coordinates)
-- Color (stroke color)
-- Stroke width
-- Fill color and opacity (for shapes)
-- Element-specific properties
+#### Common Properties
+All elements inherit these base properties:
+```dart
+required double x;      // X position in diagram coordinates
+required double y;      // Y position in diagram coordinates
+Color color;           // Stroke color (defaults to Colors.black)
+```
 
-Element-specific properties examples:
+#### Element-Specific Properties
+
+**Basic Shapes**
+```dart
+// CircleElement
+final double radius;
+final Color? fillColor;
+
+// RectangleElement
+final double width;
+final double height;
+final Color? fillColor;
+final double? borderRadius;
+
+// PolygonElement
+final List<Point<double>> points;
+final Color? fillColor;
+final bool closed;
+```
+
+**Lines and Connectors**
+```dart
+// LineElement
+final double x2;
+final double y2;
+final double strokeWidth;
+
+// ArrowElement
+final double headSize;
+final double headAngle;
+final ArrowStyle style;
+
+// DottedLineElement
+final double dashLength;
+final double gapLength;
+```
+
+**Curves**
 ```dart
 // BezierCurveElement
+final Point<double> endPoint;
 final Point<double> controlPoint1;
-final Point<double>? controlPoint2;  // For cubic curves
-final bool showControlPoints;
+final Point<double>? controlPoint2;
+final BezierType type;
 
-// StarElement
-final int points;
-final double innerRadius;
-final double outerRadius;
-
-// GroupElement
-final List<DrawableElement> children;
+// ArcElement
+final double radius;
+final double startAngle;
+final double endAngle;
+final bool useCenter;
 ```
 
-### 5. Element Bounds
-
-Elements support bounds calculation for:
-- Hit testing
-- Group transformations
-- Layout calculations
-- Efficient rendering
-
-Example:
+**Measurement**
 ```dart
-class RectangleElement extends DrawableElement {
-  @override
-  ElementBounds getBounds(CoordinateSystem coordinates) {
-    final topLeft = coordinates.mapValueToDiagram(x, y);
-    final bottomRight = coordinates.mapValueToDiagram(
-      x + width,
-      y + height,
-    );
-    return ElementBounds.fromPoints(topLeft, bottomRight);
-  }
-}
+// AxisElement
+final double length;
+final double tickInterval;
+final bool showLabels;
+final AxisOrientation orientation;
+
+// GridElement
+final double spacing;
+final bool showSubdivisions;
 ```
 
-## Implementation Details
-
-### 1. Creating Elements
-
-Each element type:
-1. Extends `DrawableElement`
-2. Implements the `render` method
-3. Defines element-specific properties
-4. Handles its own rendering logic
-
-Example:
+**Media**
 ```dart
-class ImageElement extends DrawableElement {
-  final ImageSource source;
-  final String? path;
-  final double width;
-  final double height;
-  final double opacity;
+// TextElement
+final String text;
+final TextStyle? style;
+final TextAlign align;
 
-  // Constructor and implementation
-}
+// ImageElement
+final ui.Image image;
+final double width;
+final double height;
+final BoxFit fit;
 ```
 
-### 2. Rendering
+### 5. Element Creation
 
-Elements implement the `render` method to draw themselves:
-1. Convert coordinates using the coordinate system
-2. Set up the canvas paint properties
-3. Draw the element using Flutter's Canvas APIs
+Elements should be created through their constructors with required parameters:
 
-Example:
 ```dart
-@override
-void render(Canvas canvas, CoordinateSystem coordinates) {
-  final point = coordinates.mapValueToDiagram(x, y);
-  canvas.drawSomething(point, paint);
-}
+// Basic shape
+final circle = CircleElement(
+  x: 0,
+  y: 0,
+  radius: 50,
+  color: Colors.black,
+  fillColor: Colors.blue.withOpacity(0.5),
+);
+
+// Line with arrow
+final arrow = ArrowElement(
+  x1: 0,
+  y1: 0,
+  x2: 100,
+  y2: 100,
+  headSize: 10,
+  style: ArrowStyle.filled,
+  color: Colors.black,
+);
+
+// Curve
+final curve = BezierCurveElement(
+  x: 0,
+  y: 0,
+  endPoint: Point(100, 100),
+  controlPoint1: Point(50, 150),
+  type: BezierType.quadratic,
+  color: Colors.black,
+);
+
+// Group
+final group = GroupElement(
+  x: 0,
+  y: 0,
+  elements: [circle, arrow, curve],
+);
 ```
 
-## Usage Guidelines
+### 6. Element Equality
 
-### 1. Adding Elements to a Diagram
-
-Elements are added to the diagram using the builder pattern:
+Elements implement value equality based on their properties:
 
 ```dart
-diagram
-  .addElement(GridElement())
-  .addElement(RulerElement())
-  .addElement(ImageElement(
-    x: 0,
-    y: 2,
-    width: 4,
-    height: 4,
-    source: ImageSource.network,
-    path: 'https://example.com/image.jpg',
-  ));
-```
+// Two elements with same properties are equal
+final circle1 = CircleElement(x: 0, y: 0, radius: 10);
+final circle2 = CircleElement(x: 0, y: 0, radius: 10);
+assert(circle1 == circle2);  // true
 
-### 2. Custom Elements
-
-To create a new element type:
-
-1. Extend `DrawableElement`
-2. Implement required properties
-3. Implement the `render` method
-4. Handle coordinate transformations
-
-Example:
-```dart
-class CustomElement extends DrawableElement {
-  CustomElement({
-    required double x,
-    required double y,
-    Color color = const Color(0xFF000000),
-  }) : super(x: x, y: y, color: color);
-
-  @override
-  void render(Canvas canvas, CoordinateSystem coordinates) {
-    // Implementation
-  }
-}
+// Different properties = different elements
+final circle3 = CircleElement(x: 1, y: 0, radius: 10);
+assert(circle1 != circle3);  // true
 ```
 
 ## Best Practices
 
-### 1. Element Design
-- Keep elements immutable
-- Implement getBounds() for proper bounds calculation
+### 1. Element Creation
+- Always provide required parameters
 - Use named parameters for clarity
-- Provide meaningful defaults
-- Document parameter constraints
+- Consider optional parameters for customization
+- Initialize elements with const when possible
 
-### 2. Rendering
-- Use coordinate system for all transformations
-- Handle both stroke and fill appropriately
-- Consider performance for complex shapes
-- Implement proper clipping when needed
+### 2. Coordinate System
+- Use diagram coordinates, not screen coordinates
+- Let coordinate system handle transformations
+- Consider scale when setting sizes and distances
 
 ### 3. Groups
-- Maintain proper coordinate transformation
-- Handle nested groups efficiently
-- Consider bounds calculation overhead
+- Use GroupElement for related elements
+- Keep group hierarchies shallow
+- Consider performance with large groups
 
-### 4. Testing
-- Test bounds calculations
+### 4. Performance
+- Minimize element creation in tight loops
+- Cache complex calculations
+- Use appropriate stroke widths for scale
+
+### 5. Testing
+- Test element creation with various parameters
 - Verify coordinate transformations
 - Test edge cases (zero size, negative values)
 - Validate group transformations
 
-## Extension Points
+## Reference Examples
 
-The system can be extended by:
-
-1. **New Element Types**
-   - Create new subclasses of `DrawableElement`
-   - Add specialized rendering logic
-   - Implement new visual features
-
-2. **Enhanced Properties**
-   - Add new properties to elements
-   - Implement new rendering effects
-   - Add animation support
-
-3. **Coordinate System**
-   - Add new coordinate transformation methods
-   - Support different coordinate spaces
-   - Add viewport management
+See these implementations for examples:
+- `migrated_butterfly_art.dart` - Complex shape composition
+- `standalone_migrated_main.dart` - Basic element usage
+- `embedded_migrated_main.dart` - Interactive elements

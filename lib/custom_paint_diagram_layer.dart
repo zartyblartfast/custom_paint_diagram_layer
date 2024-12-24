@@ -13,3 +13,9 @@ export 'custom_paint_diagram_layer/layers/layers.dart';
 
 // Elements
 export 'custom_paint_diagram_layer/elements/elements.dart';
+
+// New renderer architecture
+export 'custom_paint_diagram_layer/config/diagram_config.dart';
+export 'custom_paint_diagram_layer/renderers/diagram_renderer_base.dart';
+export 'custom_paint_diagram_layer/renderers/diagram_migration_helper.dart';
+export 'custom_paint_diagram_layer/renderers/diagram_controller.dart';

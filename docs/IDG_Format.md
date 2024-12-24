@@ -1,191 +1,258 @@
 # IDG (Interactive Diagram Graphics) Format
 
 ## Overview
-The IDG format is a JSON-based specification for storing and sharing interactive diagrams created with the Custom Paint Diagram Layer framework. It enables serialization and deserialization of diagram elements, coordinate systems, and properties.
+The IDG format is a proposed specification for a human and AI-friendly diagram definition language, built on the Custom Paint Diagram Layer framework. It aims to provide a structured, unambiguous way to define interactive diagrams that can be easily created, modified, and understood by both humans and AI assistants.
 
-## Current Implementation Status
+## Vision and Goals
 
-### Completed Features
+1. **Human-AI Collaboration**
+   - Natural language to diagram conversion
+   - AI-assisted diagram creation and modification
+   - Semantic understanding of diagram components
+   - Context-aware element relationships
 
-1. **Core Format Structure**
-   - JSON-based serialization
-   - Support for basic diagram elements
-   - Coordinate system export/import
-   - Element properties preservation
+2. **Structured Definition**
+   - Clear, unambiguous element specifications
+   - Semantic relationships between elements
+   - State and behavior definitions
+   - Coordinate system abstractions
 
-2. **Element Support**
-   - LineElement with position and color properties
-   - Basic styling (colors, stroke widths)
-   - Element positioning within coordinate system
+3. **Interactive Capabilities**
+   - Controller-based state management
+   - Event handling and animations
+   - User interaction patterns
+   - Real-time updates
 
-3. **CLI Tool**
-   - Command-line interface for import/export
-   - File-based operations
-   - Basic error handling
+## Proposed Format Structure
 
-4. **Import/Export Pipeline**
-   - DiagramExporter for converting diagrams to IDG
-   - DiagramLoader for creating diagrams from IDG
-   - JSON parsing and validation
-
-5. **Demo Implementation**
-   - Working example with imported diagram
-   - Visual verification of imported elements
-   - Cross-platform compatibility
-
-### Current Limitations
-
-1. **Element Types**
-   - Limited to basic elements (currently Lines)
-   - Complex elements not yet supported
-   - No support for compound elements
-
-2. **Properties**
-   - Basic property set only
-   - Advanced styling options not implemented
-   - No animation state preservation
-
-3. **Interactivity**
-   - Static diagram import only
-   - No preservation of interactive behaviors
-   - Limited state management
-
-## Technical Details
-
-### File Format
+### Basic Structure
 ```json
 {
-  "version": "1.0",
-  "coordinateSystem": {
-    "origin": {"x": 400, "y": 300},
-    "xRange": {"min": -400, "max": 400},
-    "yRange": {"min": -300, "max": 300},
-    "scale": 1.0
+  "version": "2.0",
+  "metadata": {
+    "name": "Example Diagram",
+    "description": "A sample interactive diagram",
+    "author": "Human-AI Collaboration",
+    "created": "2024-12-24T10:27:31Z"
+  },
+  "renderer": {
+    "type": "DiagramRendererBase",
+    "config": {
+      "coordinateSystem": {
+        "origin": {"x": 0, "y": 0},
+        "xRange": {"min": -10, "max": 10},
+        "yRange": {"min": -10, "max": 10},
+        "scale": 1.0
+      }
+    }
+  },
+  "controller": {
+    "type": "DiagramControllerMixin",
+    "state": {
+      "value": 0.5,
+      "otherValue": 100
+    },
+    "bindings": [
+      {
+        "stateKey": "value",
+        "elementId": "circle1",
+        "property": "radius",
+        "transform": "value * 2 + 1"
+      }
+    ]
   },
   "elements": [
     {
-      "type": "line",
+      "id": "circle1",
+      "type": "CircleElement",
       "properties": {
-        "x1": 0,
-        "y1": 0,
-        "x2": 100,
-        "y2": 100,
+        "x": 0,
+        "y": 0,
+        "radius": 1,
         "color": "#FF0000",
-        "strokeWidth": 2.0
+        "fillColor": {"color": "#FF0000", "opacity": 0.3}
       }
+    },
+    {
+      "id": "group1",
+      "type": "GroupElement",
+      "properties": {
+        "x": 2,
+        "y": 2
+      },
+      "children": [
+        {
+          "type": "RectangleElement",
+          "properties": {
+            "x": -1,
+            "y": -1,
+            "width": 2,
+            "height": 2,
+            "color": "#0000FF"
+          }
+        }
+      ]
     }
-    // ... more elements
-  ]
+  ],
+  "interactions": {
+    "onValueChanged": {
+      "type": "SliderInteraction",
+      "stateKey": "value",
+      "min": 0,
+      "max": 1,
+      "label": "Adjust Size"
+    }
+  }
 }
 ```
 
-### Usage Example
-```dart
-// Export a diagram
-final exporter = DiagramExporter();
-final idgContent = exporter.exportDiagram(myDiagram);
-await File('diagram.idg').writeAsString(idgContent);
-
-// Import a diagram
-final loader = DiagramLoader();
-final diagram = await loader.loadFromFile('diagram.idg');
+### Semantic Layer
+```json
+{
+  "relationships": [
+    {
+      "type": "connection",
+      "from": "circle1",
+      "to": "group1",
+      "style": "arrow"
+    }
+  ],
+  "constraints": [
+    {
+      "type": "alignment",
+      "elements": ["circle1", "group1"],
+      "axis": "vertical"
+    }
+  ],
+  "layout": {
+    "type": "flowchart",
+    "direction": "LR",
+    "spacing": 2
+  }
+}
 ```
 
-## Next Steps
+## Integration with New Architecture
 
-### Short Term Goals
+### 1. DiagramRendererBase Integration
+```dart
+class IDGRenderer extends DiagramRendererBase {
+  final String idgContent;
+  
+  IDGRenderer(this.idgContent) {
+    final idg = IDGParser.parse(idgContent);
+    initializeFromIDG(idg);
+  }
+  
+  @override
+  List<DrawableElement> createElements() {
+    return idg.elements.map((e) => e.toDrawableElement()).toList();
+  }
+}
+```
 
-1. **Element Support Expansion**
-   - Add CircleElement support
-   - Implement PolygonElement export/import
-   - Add BezierCurveElement capabilities
-   - Support for text elements
+### 2. Controller State Management
+```dart
+mixin IDGControllerMixin on DiagramControllerMixin {
+  void initializeFromIDG(IDGDocument idg) {
+    initializeController(
+      defaultValues: idg.controller.state,
+      bindings: idg.controller.bindings,
+    );
+  }
+}
+```
 
-2. **Property Enhancement**
-   - Full color property support (including opacity)
-   - Gradient and pattern fills
-   - Extended stroke properties
-   - Transform matrices
+## AI Assistance Features
 
-3. **Testing and Validation**
-   - Comprehensive test suite for all elements
-   - Edge case handling
-   - Format validation tools
-   - Performance benchmarking
+1. **Natural Language Processing**
+   ```
+   "Create a flowchart with three boxes connected by arrows"
+   ↓
+   {
+     "elements": [...],
+     "relationships": [...],
+     "layout": {"type": "flowchart"}
+   }
+   ```
 
-### Medium Term Goals
+2. **Semantic Understanding**
+   - Element purpose and meaning
+   - Relationship types
+   - Layout intentions
+   - Interactive behaviors
 
-1. **Interactive Features**
-   - State preservation in IDG format
-   - Animation keyframe support
-   - Event handler serialization
-   - Interactive property binding
+3. **Context-Aware Modifications**
+   - Smart element placement
+   - Automatic layout adjustments
+   - Style consistency
+   - Constraint maintenance
 
-2. **Tool Enhancement**
-   - GUI for IDG file manipulation
-   - Preview capability in CLI
-   - Batch processing support
-   - Format conversion utilities
+## Development Roadmap
 
-3. **Integration Features**
-   - Library of reusable components
-   - Template system
-   - Component composition tools
-   - Version control integration
+### Phase 1: Core Format
+- [ ] Define base format specification
+- [ ] Implement basic serialization/deserialization
+- [ ] Create format validation tools
+- [ ] Add example diagrams
 
-### Long Term Vision
+### Phase 2: AI Integration
+- [ ] Develop natural language processing
+- [ ] Add semantic understanding
+- [ ] Create AI assistance tools
+- [ ] Build diagram suggestion system
 
-1. **Ecosystem Development**
-   - Standard library of shareable components
-   - Online repository of IDG diagrams
-   - Community contribution system
-   - Integration with other tools
+### Phase 3: Interactive Features
+- [ ] Implement state management
+- [ ] Add animation support
+- [ ] Create interaction patterns
+- [ ] Build real-time updates
 
-2. **Advanced Features**
-   - Real-time collaboration support
-   - Version control for diagrams
-   - Differential updates
-   - Plugin system
-
-3. **Platform Expansion**
-   - Web-based IDG viewer
-   - Mobile support
-   - Desktop applications
-   - Cross-platform tools
+### Phase 4: Tools and Ecosystem
+- [ ] Create IDG editor
+- [ ] Build format converter
+- [ ] Develop validation tools
+- [ ] Create component library
 
 ## Contributing
 
 To contribute to the IDG format development:
 
-1. **Adding New Elements**
-   - Implement element serialization in `diagram_exporter.dart`
-   - Add deserialization in `diagram_loader.dart`
-   - Create tests in `diagram_exporter_test.dart`
-   - Update documentation
+1. **Format Enhancement**
+   - Propose new format features
+   - Create example diagrams
+   - Test with AI assistants
+   - Document use cases
 
-2. **Testing**
-   - Run existing tests: `flutter test`
-   - Add new test cases
-   - Verify cross-platform compatibility
-   - Test with real-world diagrams
+2. **Tool Development**
+   - Build format validators
+   - Create conversion tools
+   - Develop editing utilities
+   - Write test suites
 
 3. **Documentation**
-   - Update this document with new features
-   - Add examples for new capabilities
-   - Document best practices
-   - Provide migration guides
+   - Update specifications
+   - Add examples
+   - Write tutorials
+   - Create reference guides
 
 ## Resources
 
 - [Element Architecture](Element_Architecture.md)
-- [Implementation Approach](Implementation_Approach.md)
+- [Diagram Integration Architecture](diagram_integration_architecture.md)
 - [Creating New Demos](Creating_New_Demos.md)
+- [DL Compliance](Diagram_DL_Compliance.md)
 
 ## Version History
 
-### v1.0 (Current)
-- Initial implementation
-- Basic element support
-- File-based import/export
-- CLI tool
-- Demo implementation
+### v2.0 (Proposed)
+- AI-friendly format structure
+- Controller state management
+- Semantic layer
+- Interactive features
+
+### v1.0 (Initial Concept)
+- Basic format structure
+- Element serialization
+- File-based operations
+- Simple examples

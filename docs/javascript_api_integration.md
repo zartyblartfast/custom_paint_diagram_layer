@@ -1,6 +1,6 @@
 # JavaScript API Integration Guide
 
-This guide provides a detailed explanation of embedding diagrams via JavaScript API, including rationale, implementation steps, and advanced use cases.
+This guide explains how to integrate diagrams using JavaScript API with the Custom Paint Diagram Layer framework's renderer-based architecture.
 
 ## How It Works
 
@@ -15,43 +15,62 @@ Using Dart's `dart:js` or `dart:js_util` libraries, you can create JavaScript fu
 
 ## Implementation Steps
 
-### 1. Expose JavaScript Functions from Flutter
-
-Add a Dart function that uses the `dart:js` library to define JavaScript-accessible functions:
+### 1. Create the Diagram Class
 
 ```dart
-import 'dart:html';
-import 'dart:js';
-
-void renderDiagram(String elementId, String config) {
-  // Locate the target container by its ID
-  final container = document.getElementById(elementId);
-  if (container != null) {
-    // Replace container's inner HTML with the Flutter app rendering the diagram
-    container.innerHtml = ''; // Clear the container
-    runApp(MyDiagramLayerApp(config: config));
-  } else {
-    print('Error: No element found with ID: $elementId');
+class WebDiagram extends DiagramRendererBase with DiagramControllerMixin {
+  WebDiagram({Map<String, dynamic>? config}) : super() {
+    initializeController(
+      defaultValues: config ?? {},
+      onValuesChanged: _notifyJavaScript,
+    );
   }
-}
 
-void main() {
-  // Expose the `renderDiagram` function to JavaScript
-  context['renderDiagram'] = renderDiagram;
-  // Optional: Run a default Flutter app instance
-  runApp(MyDiagramLayerApp());
+  void _notifyJavaScript(Map<String, dynamic> values) {
+    js.context.callMethod('onDiagramChanged', [jsonEncode(values)]);
+  }
+
+  @override
+  List<DrawableElement> createElements() {
+    return [
+      CircleElement(
+        x: controller.getValue<double>('x') ?? 0,
+        y: controller.getValue<double>('y') ?? 0,
+        radius: controller.getValue<double>('radius') ?? 1.0,
+      ),
+    ];
+  }
 }
 ```
 
-- `renderDiagram(String elementId, String config)`:
-  - `elementId`: The ID of the container where the diagram should be rendered
-  - `config`: A JSON string containing configuration details for the diagram
+### 2. Create JavaScript Interface
 
-- `context['renderDiagram']`:
-  - Binds the renderDiagram Dart function to the global JavaScript context
-  - Makes it callable from JavaScript
+```dart
+@JS()
+library diagram_js;
 
-### 2. Build the Flutter Web App
+import 'package:js/js.dart';
+
+@JS('renderDiagram')
+external set _renderDiagram(void Function(String containerId, String config) f);
+
+void main() {
+  _renderDiagram = allowInterop((String containerId, String config) {
+    final diagram = WebDiagram(
+      config: jsonDecode(config),
+    );
+    
+    runApp(MaterialApp(
+      home: HtmlElementView(
+        viewType: containerId,
+        child: diagram.buildDiagramWidget(context),
+      ),
+    ));
+  });
+}
+```
+
+### 3. Build the Flutter Web App
 
 Use the Flutter build process to compile the app into JavaScript-compatible files:
 
@@ -73,7 +92,7 @@ Key files for integration:
 - `flutter.js`: The Flutter runtime loader
 - `main.dart.js`: The compiled Flutter app containing your diagram logic
 
-### 3. Host the Compiled Flutter App
+### 4. Host the Compiled Flutter App
 
 Host the compiled files on a web server or include them in the target webpage's project folder:
 
@@ -84,7 +103,7 @@ diagram-layer/
   assets/
 ```
 
-### 4. Integrate the Flutter Diagram into a Webpage
+### 5. Integrate the Flutter Diagram into a Webpage
 
 Include the Flutter runtime and initialize the diagram in your target webpage:
 
@@ -183,6 +202,39 @@ const config = JSON.stringify({
 });
 renderDiagram('diagram-container', config);
 ```
+
+## State Management
+
+The diagram uses `DiagramControllerMixin` for state management:
+
+1. **Initial State**
+   - Passed via JavaScript as config object
+   - Initialized in controller
+
+2. **State Updates**
+   - JavaScript can update state via controller
+   - Controller notifies JavaScript of changes
+
+3. **Two-way Binding**
+   - Controller state reflects in diagram
+   - Diagram changes update JavaScript
+
+## Best Practices
+
+1. **State Management**
+   - Use controller for all state changes
+   - Keep state serializable for JS
+   - Handle state validation
+
+2. **Performance**
+   - Minimize state updates
+   - Batch related changes
+   - Use appropriate data types
+
+3. **Error Handling**
+   - Validate JavaScript input
+   - Handle missing values
+   - Provide error feedback
 
 ## Advantages and Disadvantages
 

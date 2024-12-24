@@ -57,118 +57,151 @@ After adding the dependency to your pubspec.yaml:
 
 ## Using the Package
 
-Import the package in your Dart code:
-
+### Basic Import
+For most use cases, start with the main package import:
 ```dart
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 ```
 
-## Required Imports
+### Specific Component Imports
+For more granular control, you might need these imports:
 
-The basic import for most use cases:
 ```dart
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
-```
-
-For more specific needs, you might need these imports:
-```dart
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/line_element.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/rectangle_element.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/text_element.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/axis_element.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
+// Core Components
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/renderers/diagram_renderer_base.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/coordinate_system.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/custom_paint_renderer.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/diagram_controller.dart';
+
+// Elements
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/elements.dart';
+// Or specific elements:
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/circle_element.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/line_element.dart';
+// etc...
+
+// Mixins
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/mixins/diagram_controller_mixin.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/mixins/diagram_migration_helper.dart';
 ```
 
-## Quick Start with Templates
+## Quick Start Example
 
-For the fastest way to get started:
+Here's a minimal example to get you started:
 
-1. Copy one of our template projects from the `/templates` directory:
-   - `basic_diagram`: A simple example showing core functionality
-   - `spring_balance`: A more complex example with interactive elements
+```dart
+import 'package:flutter/material.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 
-2. Update your `pubspec.yaml` with the package dependency
-3. Run `flutter pub get`
-4. Start customizing the template code for your needs
+class MyDiagram extends DiagramRendererBase 
+    with DiagramMigrationHelper, DiagramControllerMixin {
+  static const String myControlKey = 'value';
+  
+  MyDiagram({
+    super.config,
+    Map<String, dynamic>? initialValues,
+    Function(Map<String, dynamic>)? onValuesChanged,
+  }) : super() {
+    initializeController(
+      defaultValues: {
+        myControlKey: 0.0,
+        ...?initialValues,
+      },
+      onValuesChanged: onValuesChanged,
+    );
+  }
 
-For detailed examples, check the template projects in the `/templates` directory.
+  @override
+  CoordinateSystem createCoordinateSystem() {
+    return CoordinateSystem(
+      origin: Offset.zero,
+      xRangeMin: -10,
+      xRangeMax: 10,
+      yRangeMin: -10,
+      yRangeMax: 10,
+      scale: 1.0,
+    );
+  }
+
+  @override
+  List<DrawableElement> createElements() {
+    final value = controller.getValue<double>(myControlKey) ?? 0.0;
+    return [
+      CircleElement(
+        x: 0,
+        y: 0,
+        radius: 1.0 + value,
+        color: Colors.black,
+      ),
+    ];
+  }
+
+  void updateFromSlider(double value) {
+    controller.setValue(myControlKey, value);
+    updateElements();
+  }
+}
+
+class MyDiagramDemo extends StatefulWidget {
+  const MyDiagramDemo({super.key});
+
+  @override
+  State<MyDiagramDemo> createState() => _MyDiagramDemoState();
+}
+
+class _MyDiagramDemoState extends State<MyDiagramDemo> {
+  late MyDiagram diagram;
+
+  @override
+  void initState() {
+    super.initState();
+    diagram = MyDiagram(
+      onValuesChanged: (values) => setState(() {}),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: diagram.buildDiagramWidget(context),
+        ),
+        Slider(
+          value: diagram.controller.getValue<double>('value') ?? 0.0,
+          onChanged: (value) => diagram.updateFromSlider(value),
+        ),
+      ],
+    );
+  }
+}
+```
+
+## Reference Examples
+
+For more complex examples, check these implementations in the package:
+- `migrated_butterfly_art.dart` - Full featured example with complex shapes
+- `standalone_migrated_main.dart` - Standalone diagram usage
+- `embedded_migrated_main.dart` - Embedded diagram with controls
+
+## Troubleshooting
+
+### 1. Import Issues
+If the basic import doesn't work, try using specific imports as shown above.
+
+### 2. Version Conflicts
+- Make sure your Flutter SDK version is >= 3.0.0
+- Check for conflicting dependencies in your pubspec.yaml
+
+### 3. Runtime Errors
+- Verify you're extending `DiagramRendererBase`
+- Check that all required methods are implemented
+- Ensure coordinate system is properly configured
 
 ## Next Steps
 
 After successful setup:
-1. Run the template code to verify everything works
-2. Customize the coordinate system for your needs
-3. Add your own diagram elements
-4. Implement your specific diagram requirements
+1. Review the [Element Architecture](Element_Architecture.md) guide
+2. Check the [Creating New Demos](Creating_New_Demos.md) guide
+3. Ensure [DL Compliance](Diagram_DL_Compliance.md)
 
-For more information:
-- Check the architecture documentation in `/docs/architecture/`
-- Visit our GitHub repository for latest updates and issues
-
-## Available Versions
-
-The package follows semantic versioning:
-- v0.0.1: Initial release
-  - Basic diagram layer functionality
-  - Support for lines, rectangles, and text elements
-  - Coordinate system with adjustable axes
-
-## Updating the Package
-
-To update to a newer version:
-
-1. Change the `ref:` in your pubspec.yaml to the desired version
-2. Run `flutter pub get`
-
-## Best Practices
-
-1. **For Production Apps:**
-   - Always use tagged versions (e.g., `ref: v0.0.1`)
-   - Avoid using branch names like `main`
-   - Lock to specific versions for stability
-
-2. **For Development:**
-   - You can use branch names for latest features
-   - Consider using commit hashes for reproducible builds
-   - Test thoroughly when updating versions
-
-## Troubleshooting
-
-If you encounter issues:
-
-1. Import Issues
-   - If using the basic import doesn't work:
-     ```dart
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
-     ```
-   - You may need these explicit imports:
-     ```dart
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/line_element.dart';
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/rectangle_element.dart';
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/text_element.dart';
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/axis_element.dart';
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/layers/layers.dart';
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/coordinate_system.dart';
-     import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/custom_paint_renderer.dart';
-     ```
-
-2. Dependency Cache Issues
-   If changes aren't being picked up:
-   ```bash
-   flutter clean
-   flutter pub cache clean
-   flutter pub get
-   ```
-
-3. Check that your Flutter SDK version meets the requirements
-4. Verify network access to GitHub
-
-## Support
-
-For issues, feature requests, or contributions:
-- Visit our [GitHub repository](https://github.com/zartyblartfast/custom_paint_diagram_layer)
-- Submit issues through the GitHub issue tracker
-- Pull requests are welcome
+For more detailed documentation, see the `/docs` directory in the package.

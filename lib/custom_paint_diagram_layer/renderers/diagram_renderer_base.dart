@@ -101,4 +101,18 @@ abstract class DiagramRendererBase {
   /// 
   /// Returns a new instance with the updated configuration.
   DiagramRendererBase updateConfig(DiagramConfig newConfig);
+
+  /// Helper method to show diagram axes
+  @protected
+  void showDiagramAxes() {
+    diagramLayer = diagramLayer.toggleAxes();
+  }
+
+  /// Helper method to hide diagram axes
+  @protected
+  void hideDiagramAxes() {
+    if (diagramLayer.showAxes) {
+      diagramLayer = diagramLayer.toggleAxes();
+    }
+  }
 }

@@ -27,69 +27,126 @@ custom_paint_diagram_layer/
 
 ### 1. Create the Diagram Renderer
 
+You can use `template_diagram.dart` as a starting point for new diagrams. Here are the key components:
+
+#### Basic Structure
 Create a new class extending `DiagramRendererBase`:
 
 ```dart
 class MyDiagram extends DiagramRendererBase 
     with DiagramMigrationHelper, DiagramControllerMixin {
-  // Control point keys
-  static const String myControlKey = 'control1';
+  // State variables
+  final Map<String, dynamic>? _initialValues;
+  final void Function(Map<String, dynamic>)? _onValuesChanged;
+  bool _showAxes = true;  // Control axes visibility
   
   // Constructor
   MyDiagram({
     super.config,
     Map<String, dynamic>? initialValues,
-    Function(Map<String, dynamic>)? onValuesChanged,
-  }) : super();
-
-  @override
-  void initState() {
-    // Initialize controller
-    initializeController(
-      defaultValues: {
-        myControlKey: 0.0,
-        ...?_initialValues,
-      },
-      onValuesChanged: _onValuesChanged,
-    );
-    super.initState();
-  }
-
-  @override
-  CoordinateSystem createCoordinateSystem() {
-    return CoordinateSystem(
-      origin: Offset.zero,
-      xRangeMin: -10,
-      xRangeMax: 10,
-      yRangeMin: -10,
-      yRangeMax: 10,
-      scale: 1.0,
-    );
-  }
-
-  @override
-  List<DrawableElement> createElements() {
-    // Get control values
-    final controlValue = controller.getValue<double>(myControlKey) ?? 0.0;
-    
-    return [
-      // Your diagram elements here
-      CircleElement(
-        x: 0,
-        y: 0,
-        radius: 1.0 + controlValue,
-        color: Colors.black,
-      ),
-    ];
-  }
-
-  @override
-  void updateFromSlider(double value) {
-    controller.setValue(myControlKey, value);
-    updateElements();
-  }
+    void Function(Map<String, dynamic>)? onValuesChanged,
+  }) : _initialValues = initialValues,
+       _onValuesChanged = onValuesChanged;
 }
 ```
+
+#### Required Overrides
+
+1. **initState()** - Initialize the controller:
+```dart
+@override
+void initState() {
+  initializeController(
+    defaultValues: {
+      ...?_initialValues,
+    },
+    onValuesChanged: _onValuesChanged,
+  );
+  super.initState();
+}
+```
+
+2. **createCoordinateSystem()** - Define the diagram's coordinate space:
+```dart
+@override
+CoordinateSystem createCoordinateSystem() {
+  return CoordinateSystem(
+    origin: Offset.zero,
+    xRangeMin: -10,
+    xRangeMax: 10,
+    yRangeMin: -10,
+    yRangeMax: 10,
+    scale: 1.0,
+  );
+}
+```
+
+3. **createElements()** - Create the visual elements:
+```dart
+@override
+List<DrawableElement> createElements() {
+  // Create grid first
+  final grid = GridElement(
+    x: 0,
+    y: 0,
+    majorSpacing: 1.0,
+    minorSpacing: 0.2,
+    majorColor: Colors.grey.withOpacity(0.5),
+    minorColor: Colors.grey.withOpacity(0.2),
+  );
+
+  // Initialize diagram layer with grid
+  diagramLayer = BasicDiagramLayer(
+    coordinateSystem: createCoordinateSystem(),
+    showAxes: false,  // Default axes state
+  ).addElement(grid);
+
+  // Add axes if needed
+  if (_showAxes) {
+    diagramLayer = diagramLayer.toggleAxes();
+  }
+
+  // Return your diagram elements
+  return [
+    // Add your diagram-specific elements here
+  ];
+}
+```
+
+4. **updateConfig()** - Handle configuration updates:
+```dart
+@override
+DiagramRendererBase updateConfig(DiagramConfig newConfig) {
+  return MyDiagram(
+    config: newConfig,
+    initialValues: _initialValues,
+    onValuesChanged: _onValuesChanged,
+  );
+}
+```
+
+#### Important Notes
+
+1. **Controller Management**:
+   - Don't create a separate controller field - use `DiagramControllerMixin`
+   - Initialize the controller in `initState()` before calling `super`
+   - Store initial values and callbacks as private fields
+
+2. **Axes Management**:
+   - Use `_showAxes` boolean to track axes state
+   - Set `showAxes: false` in `BasicDiagramLayer` constructor
+   - Call `toggleAxes()` explicitly when needed
+   - Configure default state in both the class and `DiagramConfig`
+
+3. **Grid Setup**:
+   - Create the grid first in `createElements()`
+   - Add it to the layer before other elements
+   - Use semi-transparent colors for better visibility
+
+4. **Coordinate System**:
+   - Choose appropriate range values for your diagram
+   - Consider using engineering-style coordinates (y-axis up) if appropriate
+   - Origin is typically at (0,0) but can be adjusted
 
 ### 2. Create the Demo Widget
 

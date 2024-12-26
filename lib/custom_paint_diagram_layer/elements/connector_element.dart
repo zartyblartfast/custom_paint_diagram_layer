@@ -300,7 +300,16 @@ class ConnectorElement extends DrawableElement {
     required Socket endSocket,
     required CoordinateSystem coordSystem,
   }) {
-    // Find the rectangle elements in each group
+    // For groups without rectangles, use group position directly
+    if (startGroup.children.whereType<RectangleElement>().isEmpty || 
+        endGroup.children.whereType<RectangleElement>().isEmpty) {
+      return (
+        Point(startGroup.x.toDouble(), startGroup.y.toDouble()),
+        Point(endGroup.x.toDouble(), endGroup.y.toDouble())
+      );
+    }
+
+    // If both groups have rectangles, use them for connection points
     final startRect = startGroup.children.whereType<RectangleElement>().first;
     final endRect = endGroup.children.whereType<RectangleElement>().first;
 

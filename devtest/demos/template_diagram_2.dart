@@ -10,8 +10,9 @@ class TemplateDiagram2 extends DiagramRendererBase
   final void Function(Map<String, dynamic>)? _onValuesChanged;
 
   // Display control flags
-  bool _showAxes = false;
-  bool _showGrid = false;
+  bool _showAxes = true;
+  bool _showGrid = true;
+  bool _showFrame = true;
 
   TemplateDiagram2({
     super.config,
@@ -30,6 +31,12 @@ class TemplateDiagram2 extends DiagramRendererBase
   bool get showGrid => _showGrid;
   set showGrid(bool value) {
     _showGrid = value;
+    updateElements();
+  }
+
+  bool get showFrame => _showFrame;
+  set showFrame(bool value) {
+    _showFrame = value;
     updateElements();
   }
 
@@ -77,6 +84,14 @@ class TemplateDiagram2 extends DiagramRendererBase
   @override
   List<DrawableElement> createElements() {
     final elements = <DrawableElement>[];
+
+    // Add frame if enabled
+    if (_showFrame) {
+      elements.add(FrameElement(
+        color: Colors.black,
+        strokeWidth: 1.0,
+      ));
+    }
 
     // Add grid if enabled
     if (_showGrid) {

@@ -9,6 +9,10 @@ class TemplateDiagram2 extends DiagramRendererBase
   final Map<String, dynamic>? _initialValues;
   final void Function(Map<String, dynamic>)? _onValuesChanged;
 
+  // Canvas size
+  double _canvasWidth = 500;
+  double _canvasHeight = 500;
+
   // Display control flags
   bool _showAxes = true;
   bool _showGrid = true;
@@ -19,7 +23,39 @@ class TemplateDiagram2 extends DiagramRendererBase
     Map<String, dynamic>? initialValues,
     void Function(Map<String, dynamic>)? onValuesChanged,
   }) : _initialValues = initialValues,
-       _onValuesChanged = onValuesChanged;
+       _onValuesChanged = onValuesChanged {
+    if (config != null) {
+      _canvasWidth = config.width;
+      _canvasHeight = config.height;
+    }
+  }
+
+  // Getters and setters for canvas size
+  double get canvasWidth => _canvasWidth;
+  set canvasWidth(double value) {
+    _canvasWidth = value;
+    updateConfig(DiagramConfig(
+      width: value,
+      height: _canvasHeight,
+      showAxes: _showAxes,
+      showGrid: _showGrid,
+      showFrame: _showFrame,
+    ));
+    updateElements();
+  }
+
+  double get canvasHeight => _canvasHeight;
+  set canvasHeight(double value) {
+    _canvasHeight = value;
+    updateConfig(DiagramConfig(
+      width: _canvasWidth,
+      height: value,
+      showAxes: _showAxes,
+      showGrid: _showGrid,
+      showFrame: _showFrame,
+    ));
+    updateElements();
+  }
 
   // Getters and setters for axis and grid visibility
   bool get showAxes => _showAxes;
@@ -165,21 +201,26 @@ class _TemplateDiagram2DemoState extends State<TemplateDiagram2Demo> {
   void initState() {
     super.initState();
     diagram = TemplateDiagram2(
-      config: const DiagramConfig(
-        width: 800,
-        height: 600,
+      config: DiagramConfig(
+        width: 500,    // Match the new canvas size
+        height: 500,   // Match the new canvas size
       ),
-      onValuesChanged: (values) => setState(() {}),
     );
     diagram.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return diagram.buildDiagramWidget(context);
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: diagram.buildDiagramWidget(context),
+        ),
+      ),
+    );
   }
 }
 
 void main() {
-  runApp(const MaterialApp(home: TemplateDiagram2Demo()));
+  runApp(const TemplateDiagram2Demo());
 }

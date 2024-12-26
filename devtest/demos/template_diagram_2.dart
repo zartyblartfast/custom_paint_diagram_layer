@@ -18,6 +18,12 @@ class TemplateDiagram2 extends DiagramRendererBase
   bool _showGrid = true;
   bool _showFrame = true;
 
+  // Frame style
+  double _frameStrokeWidth = 1.0;
+  Color _frameStrokeColor = Colors.blueAccent;
+  Color? _frameFillColor = Colors.grey.shade100;  // Light grey fill
+  double _frameOpacity = 1.0;
+
   TemplateDiagram2({
     super.config,
     Map<String, dynamic>? initialValues,
@@ -76,6 +82,31 @@ class TemplateDiagram2 extends DiagramRendererBase
     updateElements();
   }
 
+  // Getters and setters for frame style
+  double get frameStrokeWidth => _frameStrokeWidth;
+  set frameStrokeWidth(double value) {
+    _frameStrokeWidth = value;
+    updateElements();
+  }
+
+  Color get frameStrokeColor => _frameStrokeColor;
+  set frameStrokeColor(Color value) {
+    _frameStrokeColor = value;
+    updateElements();
+  }
+
+  Color? get frameFillColor => _frameFillColor;
+  set frameFillColor(Color? value) {
+    _frameFillColor = value;
+    updateElements();
+  }
+
+  double get frameOpacity => _frameOpacity;
+  set frameOpacity(double value) {
+    _frameOpacity = value;
+    updateElements();
+  }
+
   @override
   void initState() {
     initializeController(
@@ -124,8 +155,10 @@ class TemplateDiagram2 extends DiagramRendererBase
     // Add frame if enabled
     if (_showFrame) {
       elements.add(FrameElement(
-        color: Colors.black,
-        strokeWidth: 1.0,
+        color: _frameStrokeColor,
+        strokeWidth: _frameStrokeWidth,
+        fillColor: _frameFillColor,
+        opacity: _frameOpacity,
       ));
     }
 

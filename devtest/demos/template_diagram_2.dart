@@ -9,6 +9,9 @@ class TemplateDiagram2 extends DiagramRendererBase
   final Map<String, dynamic>? _initialValues;
   final void Function(Map<String, dynamic>)? _onValuesChanged;
 
+  // Title
+  final String _title = 'Template Diagram';
+
   // Canvas size
   double _canvasWidth = 500;
   double _canvasHeight = 500;
@@ -246,6 +249,10 @@ class _TemplateDiagram2DemoState extends State<TemplateDiagram2Demo> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(
+          title: Text(diagram._title),  // Access title through diagram instance
+          backgroundColor: Colors.blueAccent,  // Match our frame color theme
+        ),
         body: Center(
           child: diagram.buildDiagramWidget(context),
         ),

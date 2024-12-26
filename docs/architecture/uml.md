@@ -2,6 +2,14 @@
 
 ## Core Components
 
+[DiagramConfig]
+    + width: double
+    + height: double
+    + backgroundColor: Color
+    + showAxes: bool
+    + showGrid: bool
+    + showFrame: bool
+
 [DiagramRendererBase]<abstract>
     + config: DiagramConfig
     + controller: DiagramController
@@ -56,13 +64,6 @@
     + mapValueToDiagram(x, y): Offset
     + copyWith(origin?, scale?): CoordinateSystem
 
-[DiagramConfig]
-    + width: double
-    + height: double
-    + backgroundColor: Color
-    + showAxes: bool
-    + copyWith(): DiagramConfig
-
 ## Integration Components
 
 [ButterflyArtDemo]<widget>
@@ -93,6 +94,20 @@
     |
     +-- [TextElements]
     |    `-- TextElement
+    |
+    +-- [AxisElement] extends DrawableElement
+    |    + render(canvas, coordinateSystem): void
+    |
+    +-- [GridElement] extends DrawableElement
+    |    + majorSpacing: double
+    |    + minorSpacing: double
+    |    + render(canvas, coordinateSystem): void
+    |
+    +-- [FrameElement] extends DrawableElement
+    |    + strokeWidth: double
+    |    + fillColor: Color?
+    |    + opacity: double
+    |    + render(canvas, coordinateSystem): void
 
 ## Integration Patterns
 
@@ -128,6 +143,11 @@ IDiagramLayer *-- CoordinateSystem
 IDiagramLayer o-- DrawableElement
 
 CustomPaintRenderer --> IDiagramLayer
+
+DrawableElement <|-- AxisElement
+DrawableElement <|-- GridElement
+DrawableElement <|-- FrameElement
+DrawableElement <|-- TextElement
 
 ## State Flow
 

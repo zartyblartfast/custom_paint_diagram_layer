@@ -23,11 +23,15 @@ abstract class IDiagramLayer {
   CoordinateSystem get coordinateSystem;
   List<DrawableElement> get elements;
   bool get showAxes;
+  bool get showGrid;
+  bool get showFrame;
   
   IDiagramLayer updateCoordinateSystem(CoordinateSystem newSystem);
   IDiagramLayer addElement(DrawableElement element);
   IDiagramLayer removeElement(DrawableElement element);
   IDiagramLayer toggleAxes();
+  IDiagramLayer toggleGrid();
+  IDiagramLayer toggleFrame();
   void render(Canvas canvas, Size size);
 }
 ```
@@ -38,6 +42,8 @@ class BasicDiagramLayer implements IDiagramLayer {
   final CoordinateSystem coordinateSystem;
   final List<DrawableElement> elements;
   final bool showAxes;
+  final bool showGrid;
+  final bool showFrame;
   
   // All operations return new instances
   // No direct element modification allowed
@@ -73,6 +79,8 @@ class BasicDiagramLayer implements IDiagramLayer {
 var layer = BasicDiagramLayer(
   coordinateSystem: CoordinateSystem(...),
   showAxes: true,
+  showGrid: true,
+  showFrame: true,
 );
 
 // Add elements using layer methods
@@ -80,6 +88,9 @@ layer = layer.addElement(LineElement(...));
 
 // Toggle axes using layer methods
 layer = layer.toggleAxes();
+
+// Toggle frame using layer methods
+layer = layer.toggleFrame();
 ```
 
 ## State Management
@@ -136,6 +147,21 @@ layer = layer.toggleAxes();
    - Minimize unnecessary layer updates
    - Use appropriate element types for better performance
    - Consider element complexity in large diagrams
+
+4. **Element Management**
+   - Always use layer methods to add/remove elements
+   - Maintain immutability by creating new instances
+   - Use appropriate element types for different drawing needs
+
+5. **Visibility Control**
+   - Use DiagramConfig for initial visibility settings
+   - Use toggle methods for runtime visibility changes
+   - Maintain consistent state across updates
+
+6. **Frame Customization**
+   - Configure frame appearance through FrameElement properties
+   - Use opacity for subtle visual effects
+   - Consider coordinate system bounds for proper positioning
 
 ## Future Considerations
 1. Style system integration

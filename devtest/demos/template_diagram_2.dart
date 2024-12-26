@@ -9,12 +9,29 @@ class TemplateDiagram2 extends DiagramRendererBase
   final Map<String, dynamic>? _initialValues;
   final void Function(Map<String, dynamic>)? _onValuesChanged;
 
+  // Display control flags
+  bool _showAxes = false;
+  bool _showGrid = false;
+
   TemplateDiagram2({
     super.config,
     Map<String, dynamic>? initialValues,
     void Function(Map<String, dynamic>)? onValuesChanged,
   }) : _initialValues = initialValues,
        _onValuesChanged = onValuesChanged;
+
+  // Getters and setters for axis and grid visibility
+  bool get showAxes => _showAxes;
+  set showAxes(bool value) {
+    _showAxes = value;
+    updateElements();
+  }
+
+  bool get showGrid => _showGrid;
+  set showGrid(bool value) {
+    _showGrid = value;
+    updateElements();
+  }
 
   @override
   void initState() {
@@ -25,7 +42,24 @@ class TemplateDiagram2 extends DiagramRendererBase
       },
       onValuesChanged: _onValuesChanged,
     );
-    super.initState();  // This calls _initDiagram() in DiagramRendererBase
+    _initDiagram();  // Call our own _initDiagram instead of super
+  }
+
+  @override
+  void _initDiagram() {
+    final coords = createCoordinateSystem();
+    
+    // Create initial layer with coordinate system
+    diagramLayer = BasicDiagramLayer(
+      coordinateSystem: coords,
+      showAxes: _showAxes,
+    );
+
+    // Add initial elements
+    final elements = createElements();
+    for (final element in elements) {
+      diagramLayer = diagramLayer.addElement(element);
+    }
   }
 
   @override
@@ -42,31 +76,37 @@ class TemplateDiagram2 extends DiagramRendererBase
 
   @override
   List<DrawableElement> createElements() {
-    // Create standard grid
-    final grid = GridElement(
-      x: 0,
-      y: 0,
-      majorSpacing: 1.0,
-      minorSpacing: 0.2,
-      majorColor: Colors.grey.withOpacity(0.5),
-      minorColor: Colors.grey.withOpacity(0.2),
-    );
+    final elements = <DrawableElement>[];
 
-    // Create axes
-    const xAxis = XAxisElement(
-      yValue: 0,  // X-axis positioned at y=0
-      tickInterval: 1.0,
-      color: Colors.black,
-    );
+    // Add grid if enabled
+    if (_showGrid) {
+      elements.add(GridElement(
+        x: 0,
+        y: 0,
+        majorSpacing: 1.0,
+        minorSpacing: 0.2,
+        majorColor: Colors.grey.withOpacity(0.5),
+        minorColor: Colors.grey.withOpacity(0.2),
+      ));
+    }
 
-    const yAxis = YAxisElement(
-      xValue: 0,  // Y-axis positioned at x=0
-      tickInterval: 1.0,
-      color: Colors.black,
-    );
+    // Add axes if enabled
+    if (_showAxes) {
+      elements.add(const XAxisElement(
+        yValue: 0,  // X-axis positioned at y=0
+        tickInterval: 1.0,
+        color: Colors.black,
+      ));
+
+      elements.add(const YAxisElement(
+        xValue: 0,  // Y-axis positioned at x=0
+        tickInterval: 1.0,
+        color: Colors.black,
+      ));
+    }
 
     // Create text element
-    final textElement = TextElement(
+    elements.add(TextElement(
       x: 0,
       y: 0,
       text: 'Template 2',
@@ -75,9 +115,9 @@ class TemplateDiagram2 extends DiagramRendererBase
         fontWeight: FontWeight.bold,
         fontSize: 24,
       ),
-    );
+    ));
 
-    return [grid, xAxis, yAxis, textElement];
+    return elements;
   }
 
   @override

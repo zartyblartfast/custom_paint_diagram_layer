@@ -18,12 +18,16 @@ class DiagramConfig {
   /// Whether to show the background grid
   final bool showGrid;
 
+  /// Whether to show the diagram frame
+  final bool showFrame;
+
   /// Creates a new diagram configuration
   const DiagramConfig({
     this.width = 600,
     this.height = 600,
     this.showAxes = true,
     this.showGrid = true,
+    this.showFrame = false,
   });
 
   /// Creates a configuration from JSON string
@@ -34,6 +38,7 @@ class DiagramConfig {
       height: map['height']?.toDouble() ?? 600,
       showAxes: map['showAxes'] ?? true,
       showGrid: map['showGrid'] ?? true,
+      showFrame: map['showFrame'] ?? false,
     );
   }
 
@@ -43,12 +48,14 @@ class DiagramConfig {
     double? height,
     bool? showAxes,
     bool? showGrid,
+    bool? showFrame,
   }) {
     return DiagramConfig(
       width: width ?? this.width,
       height: height ?? this.height,
       showAxes: showAxes ?? this.showAxes,
       showGrid: showGrid ?? this.showGrid,
+      showFrame: showFrame ?? this.showFrame,
     );
   }
 }

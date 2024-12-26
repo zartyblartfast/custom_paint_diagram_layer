@@ -12,7 +12,21 @@ This document defines the requirements for a diagram to be 100% compliant with t
   - `DiagramControllerMixin` for state management
   - `DiagramMigrationHelper` for slider support
 
-### 2. Coordinate System Setup
+### 2. Configuration Management
+- Use `DiagramConfig` for initial display settings:
+  ```dart
+  DiagramConfig(
+    width: 500,      // Canvas width
+    height: 500,     // Canvas height
+    showAxes: true,  // Show coordinate axes
+    showGrid: true,  // Show background grid
+    showFrame: true, // Show diagram frame
+  )
+  ```
+- Update configuration through `updateConfig()` method
+- Maintain state consistency with display flags
+
+### 3. Coordinate System Setup
 - Must use `CoordinateSystem` class for all coordinate transformations
 - Define logical coordinate ranges in `createCoordinateSystem()`
 - Initialize scale appropriately for the diagram's needs
@@ -31,10 +45,11 @@ This document defines the requirements for a diagram to be 100% compliant with t
   }
   ```
 
-### 3. Element Usage
+### 4. Element Usage
 - All drawing MUST use DL element classes
 - Never use Flutter's Canvas directly
 - Elements must be created in `createElements()`
+- Add elements in correct order (frame, grid, axes, custom elements)
 - All elements require:
   - Position parameters (x, y)
   - Color parameter for stroke
@@ -42,42 +57,80 @@ This document defines the requirements for a diagram to be 100% compliant with t
   ```dart
   @override
   List<DrawableElement> createElements() {
-    return [
-      CircleElement(
+    final elements = <DrawableElement>[];
+
+    // Add frame if enabled
+    if (_showFrame) {
+      elements.add(FrameElement(
+        color: _frameStrokeColor,
+        strokeWidth: _frameStrokeWidth,
+        fillColor: _frameFillColor,
+        opacity: _frameOpacity,
+      ));
+    }
+
+    // Add grid if enabled
+    if (_showGrid) {
+      elements.add(GridElement(
         x: 0,
         y: 0,
-        radius: 1.0,
-        color: Colors.black,
-      ),
-      // Other elements...
-    ];
+        majorSpacing: 1.0,
+        minorSpacing: 0.2,
+        majorColor: Colors.grey.withOpacity(0.5),
+        minorColor: Colors.grey.withOpacity(0.2),
+      ));
+    }
+
+    // Add custom elements
+    elements.add(CircleElement(
+      x: 0,
+      y: 0,
+      radius: 1.0,
+      color: Colors.black,
+    ));
+
+    return elements;
   }
   ```
 
-### 4. State Management
-- Use `DiagramController` for all state changes
-- Define control points as static constants
-- Update elements through controller methods
+### 5. State Management
+- Use private variables for element state
+- Provide getters/setters for controlled access
+- Call `updateElements()` when state changes
 - Example:
   ```dart
-  static const String controlKey = 'control1';
-  
-  void updateState(double value) {
-    controller.setValue(controlKey, value);
+  // State variables
+  bool _showFrame = true;
+  double _frameStrokeWidth = 1.0;
+  Color _frameStrokeColor = Colors.blueAccent;
+
+  // Getters/Setters
+  bool get showFrame => _showFrame;
+  set showFrame(bool value) {
+    _showFrame = value;
     updateElements();
   }
   ```
 
-### 5. Integration Patterns
-- Support both standalone and embedded modes
-- Use proper widget hierarchy
-- Handle controls appropriately
+### 6. UI Integration
+- Use `buildDiagramWidget()` for Flutter integration
+- Center diagram in display area
+- Match UI colors for consistency
 - Example:
   ```dart
-  class MyDiagramDemo extends StatefulWidget {
-    final bool useStandalone;
-    final bool showControls;
-    // ...
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(_title),
+          backgroundColor: Colors.blueAccent,
+        ),
+        body: Center(
+          child: diagram.buildDiagramWidget(context),
+        ),
+      ),
+    );
   }
   ```
 
@@ -102,8 +155,8 @@ This document defines the requirements for a diagram to be 100% compliant with t
 - [ ] Proper positioning
 
 ### State Management
-- [ ] Using `DiagramController`
-- [ ] Control points defined
+- [ ] Using private variables with getters/setters
+- [ ] Controlled access to state
 - [ ] Proper update methods
 - [ ] State initialization
 
@@ -118,8 +171,8 @@ This document defines the requirements for a diagram to be 100% compliant with t
 ### 2. State Management
 **Issue**: Direct state modification
 **Solution**:
-- Use controller for all state changes
-- Update through proper methods
+- Use private variables with getters/setters
+- Call `updateElements()` after state changes
 - Initialize state in constructor
 
 ### 3. Coordinate System

@@ -50,167 +50,129 @@ Elements use a coordinate system that:
 
 The system includes several types of elements:
 
-```
-DrawableElement (abstract)
-├── Basic Shapes
-│   ├── CircleElement
-│   ├── EllipseElement
-│   ├── RectangleElement
-│   ├── RightTriangleElement
-│   ├── IsoscelesTriangleElement
-│   ├── ParallelogramElement
-│   ├── PolygonElement
-│   └── StarElement
-├── Lines and Connectors
-│   ├── LineElement
-│   ├── DottedLineElement
-│   ├── ConnectorElement
-│   ├── ArrowElement
-│   └── ArrowheadElement
-├── Curves
-│   ├── BezierCurveElement
-│   ├── ArcElement
-│   └── SpiralElement
-├── Measurement and Reference
-│   ├── AxisElement
-│   ├── GridElement
-│   └── RulerElement
-├── Groups
-│   └── GroupElement (contains child elements)
-└── Media
-    ├── TextElement
-    └── ImageElement
-```
+#### Core Elements
 
-### 4. Element Properties
+1. **AxisElement**
+   - Renders coordinate axes
+   - Properties:
+     - `x`, `y`: Origin position
+     - `color`: Axis color
+     - `strokeWidth`: Line thickness
 
-#### Common Properties
-All elements inherit these base properties:
-```dart
-required double x;      // X position in diagram coordinates
-required double y;      // Y position in diagram coordinates
-Color color;           // Stroke color (defaults to Colors.black)
-```
+2. **GridElement**
+   - Renders background grid
+   - Properties:
+     - `x`, `y`: Grid origin
+     - `majorSpacing`: Major grid line spacing
+     - `minorSpacing`: Minor grid line spacing
+     - `majorColor`: Major line color
+     - `minorColor`: Minor line color
 
-#### Element-Specific Properties
+3. **FrameElement**
+   - Renders a customizable frame around the diagram
+   - Properties:
+     - `strokeWidth`: Frame border thickness
+     - `color`: Frame border color
+     - `fillColor`: Optional frame background color
+     - `opacity`: Frame transparency
 
-**Basic Shapes**
-```dart
-// CircleElement
-final double radius;
-final Color? fillColor;
+#### Geometric Elements
 
-// RectangleElement
-final double width;
-final double height;
-final Color? fillColor;
-final double? borderRadius;
+1. **CircleElement**
+   - Renders a circle
+   - Properties:
+     - `x`, `y`: Center position
+     - `radius`: Circle radius
+     - `color`: Stroke color
+     - `fillColor`: Optional fill color
 
-// PolygonElement
-final List<Point<double>> points;
-final Color? fillColor;
-final bool closed;
-```
+2. **LineElement**
+   - Renders a straight line
+   - Properties:
+     - `x1`, `y1`: Start position
+     - `x2`, `y2`: End position
+     - `color`: Line color
+     - `strokeWidth`: Line thickness
 
-**Lines and Connectors**
-```dart
-// LineElement
-final double x2;
-final double y2;
-final double strokeWidth;
+3. **PolygonElement**
+   - Renders a polygon
+   - Properties:
+     - `points`: List of vertices
+     - `color`: Stroke color
+     - `fillColor`: Optional fill color
+     - `strokeWidth`: Line thickness
 
-// ArrowElement
-final double headSize;
-final double headAngle;
-final ArrowStyle style;
+4. **BezierCurveElement**
+   - Renders a bezier curve
+   - Properties:
+     - `x`, `y`: Start position
+     - `endPoint`: End position
+     - `controlPoint1`: First control point
+     - `controlPoint2`: Second control point (cubic only)
+     - `type`: Curve type (quadratic/cubic)
 
-// DottedLineElement
-final double dashLength;
-final double gapLength;
-```
+#### Text and Labels
 
-**Curves**
-```dart
-// BezierCurveElement
-final Point<double> endPoint;
-final Point<double> controlPoint1;
-final Point<double>? controlPoint2;
-final BezierType type;
+1. **TextElement**
+   - Renders text
+   - Properties:
+     - `x`, `y`: Text position
+     - `text`: Text content
+     - `style`: Text style
+     - `color`: Text color
 
-// ArcElement
-final double radius;
-final double startAngle;
-final double endAngle;
-final bool useCenter;
-```
+### 4. Element Ordering
 
-**Measurement**
-```dart
-// AxisElement
-final double length;
-final double tickInterval;
-final bool showLabels;
-final AxisOrientation orientation;
+Elements are rendered in the order they are added to the diagram layer. The recommended order is:
 
-// GridElement
-final double spacing;
-final bool showSubdivisions;
-```
+1. Frame (if enabled)
+2. Grid (if enabled)
+3. Axes (if enabled)
+4. Background elements
+5. Main diagram elements
+6. Foreground elements
+7. Text and labels
 
-**Media**
-```dart
-// TextElement
-final String text;
-final TextStyle? style;
-final TextAlign align;
-
-// ImageElement
-final ui.Image image;
-final double width;
-final double height;
-final BoxFit fit;
-```
-
-### 5. Element Creation
-
-Elements should be created through their constructors with required parameters:
+### 5. Element Examples
 
 ```dart
-// Basic shape
+// Frame element
+final frame = FrameElement(
+  strokeWidth: 2.0,
+  color: Colors.blueAccent,
+  fillColor: Colors.grey.shade100,
+  opacity: 0.8,
+);
+
+// Grid element
+final grid = GridElement(
+  x: 0,
+  y: 0,
+  majorSpacing: 1.0,
+  minorSpacing: 0.2,
+  majorColor: Colors.grey.withOpacity(0.5),
+  minorColor: Colors.grey.withOpacity(0.2),
+);
+
+// Circle with fill
 final circle = CircleElement(
   x: 0,
   y: 0,
-  radius: 50,
+  radius: 5.0,
   color: Colors.black,
   fillColor: Colors.blue.withOpacity(0.5),
 );
 
-// Line with arrow
-final arrow = ArrowElement(
-  x1: 0,
-  y1: 0,
-  x2: 100,
-  y2: 100,
-  headSize: 10,
-  style: ArrowStyle.filled,
-  color: Colors.black,
-);
-
-// Curve
-final curve = BezierCurveElement(
+// Text label
+final label = TextElement(
   x: 0,
   y: 0,
-  endPoint: Point(100, 100),
-  controlPoint1: Point(50, 150),
-  type: BezierType.quadratic,
+  text: 'Origin',
+  style: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  ),
   color: Colors.black,
-);
-
-// Group
-final group = GroupElement(
-  x: 0,
-  y: 0,
-  elements: [circle, arrow, curve],
 );
 ```
 
@@ -219,48 +181,42 @@ final group = GroupElement(
 Elements implement value equality based on their properties:
 
 ```dart
-// Two elements with same properties are equal
 final circle1 = CircleElement(x: 0, y: 0, radius: 10);
 final circle2 = CircleElement(x: 0, y: 0, radius: 10);
-assert(circle1 == circle2);  // true
-
-// Different properties = different elements
 final circle3 = CircleElement(x: 1, y: 0, radius: 10);
+
+assert(circle1 == circle2);  // true
 assert(circle1 != circle3);  // true
 ```
 
 ## Best Practices
 
 ### 1. Element Creation
-- Always provide required parameters
-- Use named parameters for clarity
-- Consider optional parameters for customization
-- Initialize elements with const when possible
+- Use named constructors for clarity
+- Provide all required parameters
+- Use optional parameters with defaults
+- Consider element visibility in ordering
 
-### 2. Coordinate System
-- Use diagram coordinates, not screen coordinates
-- Let coordinate system handle transformations
-- Consider scale when setting sizes and distances
+### 2. Element Composition
+- Group related elements
+- Use appropriate element types
+- Consider performance impact
+- Maintain logical ordering
 
-### 3. Groups
-- Use GroupElement for related elements
-- Keep group hierarchies shallow
-- Consider performance with large groups
+### 3. Style Management
+- Use consistent colors
+- Consider opacity for overlays
+- Match UI theme when appropriate
+- Use appropriate stroke widths
 
 ### 4. Performance
-- Minimize element creation in tight loops
-- Cache complex calculations
-- Use appropriate stroke widths for scale
+- Minimize element count
+- Use simpler elements when possible
+- Consider caching complex paths
+- Group similar elements
 
-### 5. Testing
-- Test element creation with various parameters
-- Verify coordinate transformations
-- Test edge cases (zero size, negative values)
-- Validate group transformations
-
-## Reference Examples
-
-See these implementations for examples:
-- `migrated_butterfly_art.dart` - Complex shape composition
-- `standalone_migrated_main.dart` - Basic element usage
-- `embedded_migrated_main.dart` - Interactive elements
+### 5. Error Prevention
+- Validate all parameters
+- Handle edge cases
+- Use appropriate defaults
+- Test different configurations

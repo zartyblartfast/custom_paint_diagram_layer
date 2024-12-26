@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 
 /// A template diagram that properly follows the layer architecture
-class TemplateDiagram2 extends DiagramRendererBase 
+class TemplateDiagram extends DiagramRendererBase 
     with DiagramMigrationHelper, DiagramControllerMixin {
   
   static const String valueKey = 'value';
@@ -16,6 +16,40 @@ class TemplateDiagram2 extends DiagramRendererBase
   double _canvasWidth = 500;
   double _canvasHeight = 500;
 
+  // Coordinate system configuration
+  
+  // 1. Standard coordinate system (origin at center, equal ranges)
+  double _xRangeMin = -10;
+  double _xRangeMax = 10;
+  double _yRangeMin = -10;
+  double _yRangeMax = 10;
+  double _scale = 1.0;
+  Offset _labelCoords = Offset(-5, 5);  // Top-left quadrant
+
+  // 2. Origin at bottom-left with positive values
+  //double _xRangeMin = 0;
+  //double _xRangeMax = 20;
+  //double _yRangeMin = 0;
+  //double _yRangeMax = 20;
+  //double _scale = 1.0;
+  //Offset _labelCoords = Offset(10, 10);  // center
+
+  // 3. X-axis -10 to +10 at bottom, Y 0 to 10 from origin
+  //double _xRangeMin = -10;
+  //double _xRangeMax = 10;
+  //double _yRangeMin = 0;
+  //double _yRangeMax = 10;
+  //double _scale = 1.0;
+  //Offset _labelCoords = Offset(-5, 5);  // Upper left area
+
+  // 4. Larger coordinate ranges (-100 to +100)
+  //double _xRangeMin = -100;
+  //double _xRangeMax = 100;
+  //double _yRangeMin = -100;
+  //double _yRangeMax = 100;
+  //double _scale = 0.1;  // Smaller scale to fit in canvas
+  //Offset _labelCoords = Offset(-50, 50);  // Proportionally in top-left quadrant
+
   // Display control flags
   bool _showAxes = true;
   bool _showGrid = true;
@@ -27,7 +61,7 @@ class TemplateDiagram2 extends DiagramRendererBase
   Color? _frameFillColor = Colors.grey.shade100;  // Light grey fill
   double _frameOpacity = 1.0;
 
-  TemplateDiagram2({
+  TemplateDiagram({
     super.config,
     Map<String, dynamic>? initialValues,
     void Function(Map<String, dynamic>)? onValuesChanged,
@@ -110,6 +144,50 @@ class TemplateDiagram2 extends DiagramRendererBase
     updateElements();
   }
 
+  // Getters and setters for coordinate system
+  double get xRangeMin => _xRangeMin;
+  set xRangeMin(double value) {
+    _xRangeMin = value;
+    _updateCoordinateSystem();
+  }
+
+  double get xRangeMax => _xRangeMax;
+  set xRangeMax(double value) {
+    _xRangeMax = value;
+    _updateCoordinateSystem();
+  }
+
+  double get yRangeMin => _yRangeMin;
+  set yRangeMin(double value) {
+    _yRangeMin = value;
+    _updateCoordinateSystem();
+  }
+
+  double get yRangeMax => _yRangeMax;
+  set yRangeMax(double value) {
+    _yRangeMax = value;
+    _updateCoordinateSystem();
+  }
+
+  double get scale => _scale;
+  set scale(double value) {
+    _scale = value;
+    _updateCoordinateSystem();
+  }
+
+  Offset get labelCoords => _labelCoords;
+  set labelCoords(Offset value) {
+    _labelCoords = value;
+    updateElements();
+  }
+
+  // Helper method to update coordinate system
+  void _updateCoordinateSystem() {
+    final coords = createCoordinateSystem();
+    diagramLayer = diagramLayer.updateCoordinateSystem(coords);
+    updateElements();
+  }
+
   @override
   void initState() {
     initializeController(
@@ -143,11 +221,11 @@ class TemplateDiagram2 extends DiagramRendererBase
   CoordinateSystem createCoordinateSystem() {
     return CoordinateSystem(
       origin: Offset.zero,
-      xRangeMin: -10,
-      xRangeMax: 10,
-      yRangeMin: -10,
-      yRangeMax: 10,
-      scale: 1.0,
+      xRangeMin: _xRangeMin,
+      xRangeMax: _xRangeMax,
+      yRangeMin: _yRangeMin,
+      yRangeMax: _yRangeMax,
+      scale: _scale,
     );
   }
 
@@ -194,9 +272,9 @@ class TemplateDiagram2 extends DiagramRendererBase
 
     // Create text element
     elements.add(TextElement(
-      x: 0,
-      y: 0,
-      text: 'Template 2',
+      x: _labelCoords.dx,
+      y: _labelCoords.dy,
+      text: 'Template',
       color: Colors.black,
       style: const TextStyle(
         fontWeight: FontWeight.bold,
@@ -214,7 +292,7 @@ class TemplateDiagram2 extends DiagramRendererBase
 
   @override
   DiagramRendererBase updateConfig(DiagramConfig newConfig) {
-    return TemplateDiagram2(
+    return TemplateDiagram(
       config: newConfig,
       initialValues: _initialValues,
       onValuesChanged: _onValuesChanged,
@@ -223,20 +301,20 @@ class TemplateDiagram2 extends DiagramRendererBase
 }
 
 /// Widget that can display the template diagram
-class TemplateDiagram2Demo extends StatefulWidget {
-  const TemplateDiagram2Demo({super.key});
+class TemplateDiagramDemo extends StatefulWidget {
+  const TemplateDiagramDemo({super.key});
 
   @override
-  State<TemplateDiagram2Demo> createState() => _TemplateDiagram2DemoState();
+  State<TemplateDiagramDemo> createState() => _TemplateDiagramDemoState();
 }
 
-class _TemplateDiagram2DemoState extends State<TemplateDiagram2Demo> {
-  late TemplateDiagram2 diagram;
+class _TemplateDiagramDemoState extends State<TemplateDiagramDemo> {
+  late TemplateDiagram diagram;
 
   @override
   void initState() {
     super.initState();
-    diagram = TemplateDiagram2(
+    diagram = TemplateDiagram(
       config: DiagramConfig(
         width: 500,    // Match the new canvas size
         height: 500,   // Match the new canvas size
@@ -262,5 +340,5 @@ class _TemplateDiagram2DemoState extends State<TemplateDiagram2Demo> {
 }
 
 void main() {
-  runApp(const TemplateDiagram2Demo());
+  runApp(const TemplateDiagramDemo());
 }

@@ -40,11 +40,17 @@ class TemplateDiagram extends DiagramRendererBase
          config: config ?? DiagramConfig(
            showAxes: true,
            showGrid: true,
+           showFrame: true,  // Enable frame by default
          ),
        );
 
   @override
   void initState() {
+    // Sync display flags with config
+    _showAxes = config.showAxes;
+    _showGrid = config.showGrid;
+    _showFrame = config.showFrame;
+    
     initializeController(
       defaultValues: {
         valueKey: _sliderStartValue,
@@ -83,9 +89,8 @@ class TemplateDiagram extends DiagramRendererBase
     if (_showFrame) {
       diagramLayer = diagramLayer.addElement(
         FrameElement(
-          color: Colors.blueAccent,
-          strokeWidth: 1.0,
-          fillColor: Colors.grey.shade100,
+          color: Colors.black,  // Changed to black for better visibility
+          strokeWidth: 2.0,     // Increased width for better visibility
           opacity: 1.0,
         ),
       );
@@ -127,7 +132,22 @@ class TemplateDiagram extends DiagramRendererBase
 
   void toggleFrame() {
     _showFrame = !_showFrame;
-    _initDiagram();
+    if (!_showFrame) {
+      // Remove only the frame element
+      diagramLayer = diagramLayer.copyWith(
+        elements: diagramLayer.elements.where((e) => e is! FrameElement).toList(),
+      );
+    } else {
+      // Add frame element
+      diagramLayer = diagramLayer.addElement(
+        FrameElement(
+          color: Colors.black,
+          strokeWidth: 2.0,
+          opacity: 1.0,
+        ),
+      );
+    }
+    updateElements();
   }
 
   @override
@@ -145,6 +165,15 @@ class TemplateDiagram extends DiagramRendererBase
   @override
   List<DrawableElement> createElements() {
     final elements = <DrawableElement>[];
+
+    // Add frame if enabled (needs to be added first to be behind other elements)
+    if (_showFrame) {
+      elements.add(FrameElement(
+        color: Colors.black,
+        strokeWidth: 2.0,
+        opacity: 1.0,
+      ));
+    }
 
     // Add a semicircle that grows with the slider value
     final radius = (controller.getValue<double>(valueKey) ?? 0.0) * 5.0; // Scale up the radius
@@ -206,8 +235,9 @@ class _TemplateDiagramDemoState extends State<TemplateDiagramDemo> {
       config: DiagramConfig(
         width: 600,
         height: 600,
-        showAxes: true,  // Explicitly enable axes in initial config
-        showGrid: true,  // Explicitly enable grid in initial config
+        showAxes: true,    // Explicitly enable axes in initial config
+        showGrid: true,    // Explicitly enable grid in initial config
+        showFrame: true,   // Explicitly enable frame in initial config
       ),
     );
     diagram.initState();

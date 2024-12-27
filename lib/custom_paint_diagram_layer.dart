@@ -9,6 +9,7 @@ export 'custom_paint_diagram_layer/element_bounds.dart';
 export 'custom_paint_diagram_layer/utils/coordinate_mapper.dart';
 export 'custom_paint_diagram_layer/elements/elements.dart';
 export 'custom_paint_diagram_layer/elements/frame_element.dart';
+export 'custom_paint_diagram_layer/core_diagram_base.dart';
 
 // Layers
 export 'custom_paint_diagram_layer/layers/layers.dart';

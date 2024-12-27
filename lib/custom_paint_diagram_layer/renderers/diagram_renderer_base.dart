@@ -70,13 +70,13 @@ abstract class DiagramRendererBase {
 
   /// Updates the diagram elements.
   /// 
-  /// This method preserves grid and axes while updating other elements.
+  /// This method preserves axes while updating other elements.
   void updateElements() {
     final elements = createElements();
     
-    // Remove old elements except grid and axes
+    // Remove old elements except axes
     final oldElements = diagramLayer.elements
-        .where((e) => e is! GridElement && e is! AxisElement)
+        .where((e) => e is! AxisElement)
         .toList();
     
     // Update with new elements

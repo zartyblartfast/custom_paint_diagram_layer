@@ -30,11 +30,28 @@ class BasicDiagramLayer implements IDiagramLayer {
   /// Creates a new basic diagram layer.
   /// 
   /// All parameters are immutable and changes create new instances.
-  const BasicDiagramLayer({
+  BasicDiagramLayer({
     required this.coordinateSystem,
-    this.elements = const [],
+    List<DrawableElement> elements = const [],
     this.showAxes = true,
-  });
+  }) : elements = _initializeElements(elements, showAxes);
+
+  /// Initialize elements list with axes if needed
+  static List<DrawableElement> _initializeElements(
+    List<DrawableElement> elements,
+    bool showAxes,
+  ) {
+    if (!showAxes) return elements;
+    
+    final newElements = List<DrawableElement>.from(elements);
+    if (!elements.any((e) => e is XAxisElement)) {
+      newElements.add(const XAxisElement(yValue: 0));
+    }
+    if (!elements.any((e) => e is YAxisElement)) {
+      newElements.add(const YAxisElement(xValue: 0));
+    }
+    return newElements;
+  }
 
   @override
   IDiagramLayer updateCoordinateSystem(CoordinateSystem newSystem) {

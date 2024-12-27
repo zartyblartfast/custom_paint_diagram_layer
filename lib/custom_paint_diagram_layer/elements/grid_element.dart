@@ -40,8 +40,11 @@ class GridElement extends DrawableElement {
   /// The style of minor grid lines
   final GridLineStyle minorStyle;
 
-  /// The opacity of the grid (0.0 to 1.0)
-  final double opacity;
+  /// The opacity of major grid lines (0.0 to 1.0)
+  final double majorOpacity;
+
+  /// The opacity of minor grid lines (0.0 to 1.0)
+  final double minorOpacity;
 
   /// Creates a new grid element.
   ///
@@ -59,13 +62,16 @@ class GridElement extends DrawableElement {
     this.minorStrokeWidth = 0.5,
     this.majorStyle = GridLineStyle.solid,
     this.minorStyle = GridLineStyle.solid,
-    this.opacity = 0.5,
+    this.majorOpacity = 0.5,
+    this.minorOpacity = 0.2,
   })  : assert(majorSpacing > 0, 'Major spacing must be positive'),
         assert(minorSpacing > 0, 'Minor spacing must be positive'),
         assert(majorSpacing >= minorSpacing,
             'Major spacing must be greater than or equal to minor spacing'),
-        assert(opacity >= 0 && opacity <= 1,
-            'Opacity must be between 0.0 and 1.0'),
+        assert(majorOpacity >= 0 && majorOpacity <= 1,
+            'Major opacity must be between 0.0 and 1.0'),
+        assert(minorOpacity >= 0 && minorOpacity <= 1,
+            'Minor opacity must be between 0.0 and 1.0'),
         super(
           x: x,
           y: y,
@@ -85,7 +91,7 @@ class GridElement extends DrawableElement {
       startPoint,
       endPoint,
       minorSpacing,
-      minorColor.withOpacity(opacity),
+      minorColor.withOpacity(minorOpacity),
       minorStrokeWidth,
       minorStyle,
     );
@@ -97,7 +103,7 @@ class GridElement extends DrawableElement {
       startPoint,
       endPoint,
       majorSpacing,
-      majorColor.withOpacity(opacity),
+      majorColor.withOpacity(majorOpacity),
       majorStrokeWidth,
       majorStyle,
     );
@@ -234,7 +240,8 @@ class GridElement extends DrawableElement {
         other.minorStrokeWidth == minorStrokeWidth &&
         other.majorStyle == majorStyle &&
         other.minorStyle == minorStyle &&
-        other.opacity == opacity;
+        other.majorOpacity == majorOpacity &&
+        other.minorOpacity == minorOpacity;
   }
 
   @override
@@ -247,6 +254,7 @@ class GridElement extends DrawableElement {
         minorStrokeWidth,
         majorStyle,
         minorStyle,
-        opacity,
+        majorOpacity,
+        minorOpacity,
       );
 }

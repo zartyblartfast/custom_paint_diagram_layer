@@ -1,0 +1,32 @@
+  static (Point start, Point end) calculateConnectionPoints({
+    required GroupElement startGroup,
+    required Socket startSocket,
+    required GroupElement endGroup,
+    required Socket endSocket,
+    required CoordinateSystem coordSystem,
+  }) {
+    // Find the rectangle elements in each group
+    final startRect = startGroup.children.whereType<RectangleElement>().first;
+    final endRect = endGroup.children.whereType<RectangleElement>().first;
+
+    // Calculate connection points based on socket positions
+    final start = _getSocketPoint(startGroup, startSocket);
+    final end = _getSocketPoint(endGroup, endSocket);
+
+    return (start, end);
+  }
+
+  /// Calculate the connection point for a given socket using rectangle properties
+  static Point _getSocketPoint(GroupElement group, Socket socket) {
+    // The group position IS the socket position
+    switch (socket) {
+      case Socket.L:
+        return Point(group.x - 1, group.y);
+      case Socket.R:
+        return Point(group.x + 1, group.y);
+      case Socket.T:
+        return Point(group.x, group.y + 0.5);  // Move up from group y by offset
+      case Socket.B:
+        return Point(group.x, group.y - 0.5);  // Move down from group y by offset
+    }
+  }

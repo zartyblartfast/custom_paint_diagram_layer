@@ -5,13 +5,20 @@ import '../layers/layers.dart';
 import '../drawable_element.dart';
 import '../elements/elements.dart';
 import '../custom_paint_renderer.dart';
+import '../utils/diagnostic_helper.dart';
 
 /// Base class for diagram renderers.
 /// 
 /// Provides core functionality for diagram rendering while allowing
 /// specific implementations to define their own coordinate systems
 /// and element creation logic.
-abstract class DiagramRendererBase {
+abstract class DiagramRendererBase with DiagnosticHelper {
+  @override
+  String get diagnosticSource => 'DiagramRendererBase';
+
+  @override
+  DiagnosticCallback? get onDiagnostic => null;
+
   /// The diagram layer containing all elements
   late IDiagramLayer diagramLayer;
   
@@ -32,6 +39,14 @@ abstract class DiagramRendererBase {
   /// Initializes the diagram with coordinate system and basic elements
   @protected
   void _initDiagram() {
+    if (isDiagnosticsEnabled) {
+      reportInfo('_initDiagram', 'Initializing diagram with config', {
+        'showAxes': config.showAxes,
+        'showGrid': config.showGrid,
+        'showFrame': config.showFrame,
+      });
+    }
+
     final coords = createCoordinateSystem();
     
     // Create initial layer with coordinate system
@@ -42,6 +57,7 @@ abstract class DiagramRendererBase {
 
     // Add grid if enabled
     if (config.showGrid) {
+      if (isDiagnosticsEnabled) reportInfo('_initDiagram', 'Adding grid element');
       diagramLayer = diagramLayer.addElement(
         GridElement(
           x: 0,
@@ -72,6 +88,10 @@ abstract class DiagramRendererBase {
   /// 
   /// This method preserves axes while updating other elements.
   void updateElements() {
+    if (isDiagnosticsEnabled) {
+      reportInfo('updateElements', 'State changed, updating elements');
+    }
+
     final elements = createElements();
     
     // Remove old elements except axes
@@ -98,9 +118,12 @@ abstract class DiagramRendererBase {
   }
 
   /// Updates the diagram configuration.
-  /// 
-  /// Returns a new instance with the updated configuration.
-  DiagramRendererBase updateConfig(DiagramConfig newConfig);
+  void updateConfig(DiagramConfig newConfig) {
+    if (isDiagnosticsEnabled) {
+      reportInfo('updateConfig', 'Updating diagram configuration');
+    }
+    // Handle config update logic
+  }
 
   /// Helper method to show diagram axes
   @protected

@@ -19,3 +19,9 @@ export 'custom_paint_diagram_layer/config/diagram_config.dart';
 export 'custom_paint_diagram_layer/renderers/diagram_renderer_base.dart';
 export 'custom_paint_diagram_layer/renderers/diagram_migration_helper.dart';
 export 'custom_paint_diagram_layer/renderers/diagram_controller.dart';
+
+// State management
+export 'custom_paint_diagram_layer/state/diagram_state_manager.dart';
+export 'custom_paint_diagram_layer/state/state_managed_diagram_base.dart';
+
+export 'custom_paint_diagram_layer/widgets/diagram_widget_builder.dart';

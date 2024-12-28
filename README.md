@@ -75,6 +75,140 @@ CustomPaint(
 )
 ```
 
+## Quick Start: State-Managed Diagrams
+
+### Method 1: Using Templates
+The fastest way to create a diagram is using our pre-built templates:
+
+```dart
+// Create a basic chart diagram
+final chartDiagram = BasicChartDiagram(
+  config: DiagramConfig(
+    width: 400,
+    height: 300,
+  ),
+  dataPoints: [
+    Point(0, 0, "Start"),
+    Point(5, 5, "Middle"),
+    Point(10, 10, "End"),
+  ],
+  style: ChartStyle(
+    pointColor: Colors.blue,
+    showDataLabels: true,
+  ),
+);
+
+// Use in your widget
+Widget build(BuildContext context) {
+  return chartDiagram.buildDiagramWidget(context);
+}
+```
+
+### Method 2: Using the Builder
+For more customization, use the DiagramBuilder:
+
+```dart
+final diagram = DiagramBuilder()
+  .withSize(400, 300)
+  .withRange(
+    xMin: 0,
+    xMax: 10,
+    yMin: 0,
+    yMax: 10,
+  )
+  .withVisibility(
+    showGrid: true,
+    showAxes: true,
+  )
+  .addElements([
+    CircleElement(
+      x: 5,
+      y: 5,
+      radius: 2,
+      color: Colors.blue,
+    ),
+  ])
+  .build();
+```
+
+### Method 3: Using Configuration (Code Generation)
+Define your diagram in YAML or JSON:
+
+```yaml
+name: MyChart
+type: chart
+canvas:
+  width: 400
+  height: 300
+  xMin: 0
+  xMax: 10
+  yMin: 0
+  yMax: 10
+elements:
+  - type: circle
+    properties:
+      x: 5
+      y: 5
+      radius: 2
+      color: blue
+controls:
+  - type: slider
+    name: radius
+    properties:
+      min: 1
+      max: 5
+      initial: 2
+```
+
+Then generate and use the diagram:
+
+```dart
+final schema = await DiagramSchema.fromFile('my_chart.yaml');
+final diagram = DiagramGenerator.fromSchema(schema);
+```
+
+## Common Patterns
+
+### 1. Adding Controls
+```dart
+// Add a slider control
+diagram.state.registerControl('size', 1.0);
+ElevatedButton(
+  onPressed: () => diagram.state.updateControl('size', 2.0),
+  child: Text('Increase Size'),
+)
+```
+
+### 2. Updating Elements
+```dart
+// Update specific elements
+diagram.updateElements([
+  CircleElement(x: 5, y: 5, radius: newRadius),
+]);
+```
+
+### 3. Handling State Changes
+```dart
+// Listen for state changes
+diagram.state.addStateCallback('size', (value) {
+  print('Size changed to: $value');
+});
+```
+
+## Best Practices
+
+1. **Use Templates First**: Start with a template and customize as needed
+2. **State Management**: Use the built-in state manager for all dynamic properties
+3. **Element Organization**: Group related elements using GroupElement
+4. **Error Prevention**: Use the builder pattern to ensure valid configuration
+5. **Testing**: Each diagram comes with testing utilities
+
+For more examples and detailed documentation:
+- [State Management Guide](docs/state_management.md)
+- [Template Gallery](docs/templates.md)
+- [Builder Pattern Guide](docs/builder_pattern.md)
+- [Code Generation](docs/code_generation.md)
+
 ## Documentation
 
 Comprehensive documentation is available in the `docs` directory:

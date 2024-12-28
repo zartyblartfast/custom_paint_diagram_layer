@@ -8,11 +8,18 @@ import 'elements/frame_element.dart';
 import 'elements/grid_element.dart';
 import 'elements/axis_element.dart';
 import 'layers/layers.dart';
+import 'utils/diagnostic_helper.dart';
 
 /// Base class for diagrams that provides core functionality for handling common elements
 /// like grid, axes, and frame. Concrete diagrams only need to implement diagram-specific
 /// elements.
-abstract class CoreDiagramBase extends DiagramRendererBase with DiagramControllerMixin {
+abstract class CoreDiagramBase extends DiagramRendererBase with DiagramControllerMixin, DiagnosticHelper {
+  @override
+  String get diagnosticSource => 'CoreDiagramBase';
+  
+  @override
+  DiagnosticCallback? get onDiagnostic => null;
+
   // Canvas dimensions
   final double _canvasWidth;
   final double _canvasHeight;
@@ -202,23 +209,42 @@ abstract class CoreDiagramBase extends DiagramRendererBase with DiagramControlle
 
   @override
   List<DrawableElement> createElements() {
+    if (!isDiagnosticsEnabled) {
+      return _createElementsInternal();
+    }
+
+    reportInfo('createElements', 'Creating elements', {
+      'showFrame': _showFrame,
+      'showGrid': _showGrid,
+      'showAxes': _showAxes,
+    });
+
+    final elements = _createElementsInternal();
+    reportInfo('createElements', 'Total elements created: ${elements.length}');
+    return elements;
+  }
+
+  List<DrawableElement> _createElementsInternal() {
     final elements = <DrawableElement>[];
-    
-    // Add frame (if enabled) - should be first to be behind other elements
+
+    // Add frame if enabled
     if (_showFrame) {
+      if (isDiagnosticsEnabled) reportInfo('createElements', 'Adding frame element');
       elements.add(createFrameElement());
     }
-    
-    // Add grid (if enabled)
+
+    // Add grid if enabled
     if (_showGrid) {
+      if (isDiagnosticsEnabled) reportInfo('createElements', 'Adding grid element');
       elements.add(_createGridElement());
     }
-    
-    // Add axes (if enabled)
+
+    // Add axes if enabled
     if (_showAxes) {
+      if (isDiagnosticsEnabled) reportInfo('createElements', 'Adding axes elements');
       elements.addAll(_createAxesElements());
     }
-    
+
     // Add diagram-specific elements
     elements.addAll(createDiagramElements());
     
@@ -227,4 +253,24 @@ abstract class CoreDiagramBase extends DiagramRendererBase with DiagramControlle
 
   /// Abstract method that concrete diagrams must implement to provide their specific elements
   List<DrawableElement> createDiagramElements();
+
+  @override
+  void updateVisibility(String key, bool isVisible) {
+    if (isDiagnosticsEnabled) {
+      reportInfo('updateVisibility', 'Visibility updated: $key = $isVisible');
+    }
+    
+    switch (key) {
+      case 'grid':
+        _showGrid = isVisible;
+        break;
+      case 'axes':
+        _showAxes = isVisible;
+        break;
+      case 'frame':
+        _showFrame = isVisible;
+        break;
+    }
+    updateElements();
+  }
 }

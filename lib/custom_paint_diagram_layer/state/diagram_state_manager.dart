@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../utils/diagnostic_helper.dart';
 
 /// Represents a change in visibility state
@@ -40,12 +41,31 @@ class DiagramStateManager extends ChangeNotifier with DiagnosticHelper {
   static const String kGrid = 'grid';
   static const String kFrame = 'frame';
   static const String kAxes = 'axes';
+  static const String kTheme = 'theme';
+
+  // Theme colors
+  static const _lightTheme = <String, Color>{
+    'background': Colors.white,
+    'element': Colors.black,
+    'elementFill': Color(0x33448AFF),  // Light blue with opacity
+    'grid': Color(0x8A000000),  // Colors.black54
+    'gridMinor': Color(0x42000000),  // Colors.black26
+  };
+
+  static const _darkTheme = <String, Color>{
+    'background': Color(0xFF1E1E1E),
+    'element': Colors.white,
+    'elementFill': Color(0x4DFFFFFF),  // Colors.white30
+    'grid': Color(0x8AFFFFFF),  // Colors.white54
+    'gridMinor': Color(0x42FFFFFF),  // Colors.white26
+  };
 
   DiagramStateManager() {
     // Initialize standard visibility states
     _visibilityState[kGrid] = false;
     _visibilityState[kFrame] = true;
     _visibilityState[kAxes] = true;
+    _valueState[kTheme] = 0;  // 0 = light theme, 1 = dark theme
   }
 
   /// Update visibility state
@@ -164,6 +184,20 @@ class DiagramStateManager extends ChangeNotifier with DiagnosticHelper {
   bool get showGrid => isVisible(kGrid);
   bool get showFrame => isVisible(kFrame);
   bool get showAxes => isVisible(kAxes);
+
+  /// Get whether dark theme is enabled
+  bool get isDarkTheme => getValue(kTheme) == 1;
+
+  /// Toggle between light and dark theme
+  void toggleTheme() {
+    if (isDiagnosticsEnabled) {
+      reportInfo('toggleTheme', 'Theme toggled: ${!isDarkTheme}');
+    }
+    updateValue(kTheme, isDarkTheme ? 0 : 1);
+  }
+
+  /// Get current theme colors based on theme state
+  Map<String, Color> get themeColors => getValue(kTheme) == 1 ? _darkTheme : _lightTheme;
 
   @override
   void dispose() {

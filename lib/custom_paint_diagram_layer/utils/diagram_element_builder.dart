@@ -44,11 +44,11 @@ class DiagramElementBuilder with DiagnosticHelper {
       fontSize: 16,
       fontWeight: FontWeight.bold,
     ),
-    this.circleX = 5,
-    this.circleY = 5,
-    this.labelX = 0,
-    this.labelY = -6,
-    this.radiusScale = 5.0,
+    this.circleX = 2.5,  // Centered in right half
+    this.circleY = 2.5,  // Centered in top half
+    this.labelX = 0,     // Centered horizontally
+    this.labelY = -3,    // Above center
+    this.radiusScale = 2.5,  // Smaller radius for -5 to 5 range
     this.decimalPlaces = 1,
     this.onDiagnostic,
   });
@@ -136,27 +136,22 @@ class DiagramElementBuilder with DiagnosticHelper {
     );
   }
 
-  /// Creates a builder with standard settings for value display
+  /// Creates a standard diagram element builder with theme colors
   static DiagramElementBuilder createStandard({
     required double value,
-    Color? borderColor,
-    Color? fillColor,
-    DiagnosticCallback? onDiagnostic,
+    required Color fillColor,
+    required Color borderColor,
   }) {
-    final builder = DiagramElementBuilder(
+    return DiagramElementBuilder(
       value: value,
-      borderColor: borderColor ?? const Color.fromRGBO(238, 238, 238, 1),
-      fillColor: fillColor ?? const Color.fromRGBO(0, 0, 255, 0.2),
-      onDiagnostic: onDiagnostic,
+      fillColor: fillColor,
+      borderColor: borderColor,
+      circleX: 2.5,  // Centered in right half
+      circleY: 2.5,  // Centered in top half
+      labelX: 0,     // Centered horizontally
+      labelY: -3,    // Above center
+      radiusScale: 2.5,  // Smaller radius for -5 to 5 range
     );
-
-    builder.reportInfo('createStandard', 'Created standard builder', {
-      'value': value,
-      'borderColor': borderColor?.toString() ?? 'default',
-      'fillColor': fillColor?.toString() ?? 'default',
-    });
-
-    return builder;
   }
 
   /// Creates a builder for a minimal display (just circle, no label)

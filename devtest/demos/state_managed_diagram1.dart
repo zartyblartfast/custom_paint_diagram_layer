@@ -57,6 +57,7 @@ class StateManagedDiagram1 extends StateManagedDiagramBase {
     return DiagramElementBuilder.createStandard(
       value: value,
       fillColor: const Color.fromRGBO(0, 0, 255, 0.2),
+      borderColor: const Color.fromRGBO(238, 238, 238, 1),
     ).buildElements();
   }
 }
@@ -79,7 +80,6 @@ class _StateManagedDiagram1DemoState extends State<StateManagedDiagram1Demo> {
   late final StateChangeHandler stateHandler;
   double get _sliderValue => diagram.value;
   String _lastStateChange = 'No changes yet';
-  late final DiagramStateInitializer _stateInitializer;
 
   @override
   void initState() {
@@ -87,24 +87,24 @@ class _StateManagedDiagram1DemoState extends State<StateManagedDiagram1Demo> {
     
     // Create diagram instance with custom coordinate system
     diagram = StateManagedDiagram1(
-      config: DiagramConfigBuilder.createResponsiveConfig(
-        standalone: widget.useStandalone,
+      config: DiagramConfigBuilder.createStandardConfig(
+        // Size based on standalone mode
+        width: widget.useStandalone ? 600 : 400,
+        height: widget.useStandalone ? 400 : 300,
+        
+        // Original coordinate system
+        xRangeMin: 0,
+        xRangeMax: 10,
+        yRangeMin: 0,
+        yRangeMax: 10,
+        origin: const Offset(0, 0),
+        scale: 1.0,
+        
+        // Default visibility
+        showGrid: true,   // Grid starts visible
+        showFrame: true,  // Frame starts visible
+        showAxes: true,   // Axes start visible
       ),
-    );
-
-    void handleDiagnostic(DiagnosticMessage message) {
-      if (_DEBUG) {
-        print('DIAGNOSTIC: ${message.toString()}');
-        setState(() => _lastStateChange = message.toString());
-      }
-    }
-
-    // Initialize state with diagnostics
-    _stateInitializer = DiagramStateInitializer.createStandard(
-      diagram: diagram,
-      initialValues: {StateManagedDiagram1.valueKey: StateManagedDiagram1._sliderStartValue},
-      onStateChange: (change) => setState(() => _lastStateChange = change),
-      onDiagnostic: _DEBUG ? handleDiagnostic : null,
     );
 
     // Setup state change handling

@@ -17,88 +17,145 @@ The theme system provides a way to customize the visual appearance of diagrams, 
 The theme state is managed directly by `DiagramStateManager`:
 ```dart
 class DiagramStateManager {
-  static const String kTheme = 'theme';  // New state key
+  static const String kTheme = 'theme';  // Theme state key
   
-  // Theme state accessor
-  bool get isDarkTheme => getValue(kTheme) ?? false;
+  // Theme state is stored as a double (0 = light, 1 = dark, etc.)
+  double get currentTheme => getValue(kTheme) ?? 0;
   
-  // Theme state mutator
-  void toggleTheme() => updateValue(kTheme, !isDarkTheme);
-}
-```
-
-#### 2. Theme Colors
-Colors are defined based on the theme state:
-```dart
-// Light theme colors
-static const lightTheme = {
-  'background': Colors.white,
-  'element': Colors.black,
-  'grid': {
-    'major': Colors.black54,
-    'minor': Colors.black26,
-  },
-};
-
-// Dark theme colors
-static const darkTheme = {
-  'background': Color(0xFF1E1E1E),
-  'element': Colors.white,
-  'grid': {
-    'major': Colors.white54,
-    'minor': Colors.white26,
-  },
-};
-```
-
-#### 3. Theme Application
-Themes are applied in the diagram's paint and element creation methods:
-```dart
-class StateManagedDiagram extends StateManagedDiagramBase {
-  @override
-  void onPaint(Canvas canvas, Size size, CoordinateSystem coords) {
-    final isDark = state.isDarkTheme;
-    final colors = isDark ? darkTheme : lightTheme;
-    
-    // Apply theme colors during painting
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = colors['background'],
-    );
-    // ... rest of painting
+  // Toggle to next theme
+  void toggleTheme() {
+    final current = currentTheme;
+    final next = (current + 1) % availableThemes;  // Cycle through themes
+    updateValue(kTheme, next);
   }
 }
 ```
 
-### State Flow
-1. User clicks theme toggle button
-2. `DiagramStateManager.toggleTheme()` is called
-3. State change triggers normal state update flow
-4. Diagram repaints with new theme colors
+#### 2. Theme Colors
+Colors are defined as constant maps in DiagramStateManager:
+```dart
+// Light theme colors
+static const _lightTheme = <String, Color>{
+  'background': Colors.white,
+  'element': Colors.black,
+  'elementFill': Color(0x33448AFF),  // Light blue with opacity
+  'grid': Color(0x8A000000),         // Black with opacity
+  'gridMinor': Color(0x42000000),    // Black with less opacity
+};
+
+// Dark theme colors
+static const _darkTheme = <String, Color>{
+  'background': Color(0xFF1E1E1E),
+  'element': Colors.white,
+  'elementFill': Color(0x4DFFFFFF),  // White with opacity
+  'grid': Color(0x8AFFFFFF),         // White with opacity
+  'gridMinor': Color(0x42FFFFFF),    // White with less opacity
+};
+```
+
+#### 3. Theme Application
+Themes are applied through the DiagramStateManager's themeColors getter:
+```dart
+/// Get current theme colors
+Map<String, Color> get themeColors {
+  final themeIndex = _valueState[kTheme]?.toInt() ?? 0;
+  switch (themeIndex) {
+    case 0:
+      return _lightTheme;
+    case 1:
+      return _darkTheme;
+    default:
+      return _lightTheme;
+  }
+}
+```
+
+### Adding New Themes
+
+To add a new theme to the system:
+
+1. **Define Theme Colors**:
+```dart
+// In DiagramStateManager
+static const _customTheme = <String, Color>{
+  'background': Colors.black,
+  'element': Colors.green,
+  'elementFill': Color(0x3300FF00),  // Semi-transparent green
+  'grid': Color(0x8A00FF00),         // Semi-transparent green
+  'gridMinor': Color(0x4200FF00),    // More transparent green
+};
+```
+
+2. **Update Theme Getter**:
+```dart
+Map<String, Color> get themeColors {
+  final themeIndex = _valueState[kTheme]?.toInt() ?? 0;
+  switch (themeIndex) {
+    case 0:
+      return _lightTheme;
+    case 1:
+      return _darkTheme;
+    case 2:
+      return _customTheme;  // Add new theme case
+    default:
+      return _lightTheme;
+  }
+}
+```
+
+3. **Update Theme Toggle**:
+```dart
+void toggleTheme() {
+  final currentTheme = _valueState[kTheme] ?? 0;
+  final nextTheme = (currentTheme + 1) % 3;  // Update modulo for new theme count
+  updateValue(kTheme, nextTheme.toDouble());
+}
+```
+
+4. **Update UI Controls** (if needed):
+```dart
+IconButton(
+  icon: Icon(_getThemeIcon()),  // Add method to get appropriate icon
+  onPressed: () => setState(() {
+    diagram.state.toggleTheme();
+  }),
+  tooltip: _getThemeTooltip(),  // Add method to get appropriate tooltip
+),
+```
 
 ### Benefits
-1. **Simplicity**: No parallel state systems or complex theme managers
-2. **Integration**: Uses existing state management patterns
-3. **Reliability**: Theme changes trigger the same well-tested update mechanisms
-4. **Maintainability**: Minimal new code, mostly reusing existing patterns
+1. **Centralized**: All theme colors managed in one place
+2. **Automatic**: Elements automatically use theme colors
+3. **Extensible**: Easy to add new themes
+4. **Consistent**: Theme changes trigger standard update flow
 
 ### Future Extensions
-1. **Custom Themes**: Allow users to define their own themes
-2. **Theme Properties**: Add more customizable properties (fonts, strokes, etc.)
+1. **Theme Builder**: UI for creating custom themes
+2. **Theme Import/Export**: Save and load custom themes
 3. **Theme Transitions**: Smooth transitions between themes
 4. **Theme Presets**: Additional built-in themes beyond light/dark
+5. **Per-Element Theming**: Allow elements to override theme colors
+
+## Testing Strategy
+1. **Unit Tests**: 
+   - Verify theme state management
+   - Test theme cycling
+   - Validate color values
+2. **Integration Tests**: 
+   - Ensure proper theme application
+   - Test theme persistence
+3. **Visual Tests**: 
+   - Confirm correct rendering in all themes
+   - Verify element appearance
+4. **Performance Tests**: 
+   - Verify no degradation from theme changes
+   - Test theme switching performance
 
 ## Migration Plan
 1. Update `DiagramStateManager` to include theme state
 2. Modify base diagram classes to use theme colors
 3. Update existing demos to support themes
 4. Add theme toggle controls to demo UIs
-
-## Testing Strategy
-1. **Unit Tests**: Verify theme state management
-2. **Integration Tests**: Ensure proper theme application
-3. **Visual Tests**: Confirm correct rendering in both themes
-4. **Performance Tests**: Verify no degradation from theme changes
 
 ## Documentation
 1. Update integration guide with theme support

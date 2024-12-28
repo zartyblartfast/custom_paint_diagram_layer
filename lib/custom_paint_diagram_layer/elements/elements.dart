@@ -7,6 +7,7 @@ export 'circle_element.dart';
 export 'connector_element.dart';
 export 'dotted_line_element.dart';
 export 'ellipse_element.dart';
+export 'frame_element.dart';
 export 'grid_element.dart';
 export 'group_element.dart';
 export 'image_element.dart';

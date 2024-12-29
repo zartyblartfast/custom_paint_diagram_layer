@@ -322,16 +322,20 @@ class ConnectorElement extends DrawableElement {
 
   /// Calculate the connection point for a given socket using rectangle properties
   static Point _getSocketPoint(GroupElement group, Socket socket) {
-    // The group position IS the socket position
+    final rect = group.children.whereType<RectangleElement>().first;
+    final halfWidth = rect.width / 2;
+    final halfHeight = rect.height / 2;
+    
+    // Since the rectangle is center-referenced, the group position is its center
     switch (socket) {
       case Socket.L:
-        return Point(group.x - 1, group.y);
+        return Point(group.x - halfWidth, group.y);  // Left edge at center Y
       case Socket.R:
-        return Point(group.x + 1, group.y);
+        return Point(group.x + halfWidth, group.y);  // Right edge at center Y
       case Socket.T:
-        return Point(group.x, group.y + 0.5);  // Move up from group y by offset
+        return Point(group.x, group.y + halfHeight); // Top edge at center X
       case Socket.B:
-        return Point(group.x, group.y - 0.5);  // Move down from group y by offset
+        return Point(group.x, group.y - halfHeight); // Bottom edge at center X
     }
   }
 }

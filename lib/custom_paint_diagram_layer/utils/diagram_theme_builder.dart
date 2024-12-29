@@ -9,7 +9,7 @@ class DiagramThemeBuilder {
     DiagramConfig config,
     Map<String, Color> colors,
   ) {
-    return RectangleElement(
+    return RectangleElement.background(
       x: config.xRangeMin - 1,
       y: config.yRangeMin - 1,
       width: (config.xRangeMax - config.xRangeMin) + 2,

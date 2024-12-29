@@ -5,6 +5,9 @@ import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/widgets/di
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_elements_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/group_diagram_element_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/connector_element.dart' show Socket;
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/grid_element.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/frame_element.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/axis_element.dart';
 
 /// Set to true to enable diagnostic output
 const bool _DEBUG = true;
@@ -27,13 +30,6 @@ class StateManagedDiagram3 extends StateManagedDiagramBase {
   static const double _defaultRect3 = 0.5;
   late final DiagramStateInitializer _stateInitializer;
 
-  // Default theme colors
-  final Map<String, Color> _defaultColors = {
-    'element': Colors.blue,
-    'elementFill': Colors.blue.shade100,
-    'text': Colors.black87,
-  };
-
   StateManagedDiagram3({
     required super.config,
   }) {
@@ -54,23 +50,17 @@ class StateManagedDiagram3 extends StateManagedDiagramBase {
     );
   }
 
-  // Getters for state values with defaults
+  // Helper to map slider value (0-1) to coordinate space
+  double mapToCoordinate(double value) {
+    return -2.5 + (value * 5.0); // Map 0-1 to -2.5 to 2.5
+  }
+
+  // Value getters and setters
   double get rect1Value => state.getValue(rect1Key) ?? _defaultRect1;
   double get rect2Value => state.getValue(rect2Key) ?? _defaultRect2;
   double get rect3Value => state.getValue(rect3Key) ?? _defaultRect3;
   bool get isDarkTheme => state.isDarkTheme;
 
-  // Map 0-1 range to coordinate space
-  double mapToCoordinate(double value) {
-    return (value * 4) - 2; // Maps 0-1 to -2 to 2
-  }
-
-  // Get theme color with fallback to default
-  Color getThemeColor(Map<String, Color>? colors, String key) {
-    return colors?[key] ?? _defaultColors[key] ?? Colors.black;
-  }
-
-  // State update methods
   void setRect1Value(double value) {
     state.updateValue(rect1Key, value);
     updateElements();
@@ -150,7 +140,7 @@ class StateManagedDiagram3 extends StateManagedDiagramBase {
     );
     elements.add(group3);
 
-    // Add connectors between groups
+    // Add connectors between groups using socket positions
     elements.add(builder.createConnectorWithSockets(
       startGroup: group1,
       startSocket: Socket.R,  // Right side of group 1

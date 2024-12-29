@@ -3,6 +3,7 @@ import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/widgets/diagram_widget_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/widgets/diagram_controls_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_elements_builder.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/group_diagram_element_builder.dart';
 
 /// Set to true to enable diagnostic output
 const bool _DEBUG = false;
@@ -57,7 +58,7 @@ class StateManagedDiagram2 extends StateManagedDiagramBase {
 
     // Add grid if enabled
     if (showGrid) {
-      elements.add(DiagramThemeBuilder.createGridElement(colors));
+      elements.add(createGridElement());
     }
 
     // Add diagram elements
@@ -67,25 +68,31 @@ class StateManagedDiagram2 extends StateManagedDiagramBase {
       borderColor: colors['element']!,
     ).buildElements());
 
-    // Add a rectangle that responds to the slider
-    elements.add(RectangleElement(
-      x: -1.0,  // Center the rectangle
+    // Add a rectangle that responds to the slider using the group builder
+    final builder = GroupDiagramElementBuilder(
+      colors: colors,
+      config: config,
+    );
+
+    elements.add(builder.createLabeledGroup(
+      x: -1.0 + value,  // Center + offset based on slider
       y: -0.5,
+      text: '',  // No label for this rectangle
       width: 2.0 * value,  // Width changes with slider
       height: 1.0,
-      color: colors['element']!,
+      borderRadius: 0.2,  // Keep same rounded corners
+      fillOpacity: 0.2,  // Keep same opacity
+      elementColor: colors['element']!,
       fillColor: colors['elementFill']!,
-      fillOpacity: 0.2,
-      borderRadius: 0.2,
     ));
 
     // Add standard elements
     if (showFrame) {
-      elements.add(DiagramThemeBuilder.createFrameElement(colors));
+      elements.add(createFrameElement());
     }
 
     if (showAxes) {
-      elements.addAll(DiagramThemeBuilder.createAxisElements(colors));
+      elements.addAll(createAxisElements());
     }
 
     return elements;

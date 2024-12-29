@@ -37,14 +37,21 @@ class ElementBounds {
     print('  Position: (${element.x}, ${element.y})');
 
     if (element is RectangleElement) {
-      final halfWidth = element.width / 2;
-      final halfHeight = element.height / 2;
-      
-      localMinX = element.x - halfWidth;
-      localMaxX = element.x + halfWidth;
-      localMinY = element.y - halfHeight;
-      localMaxY = element.y + halfHeight;
-
+      if (element.centerReferenced) {
+        // Center-referenced calculation
+        final halfWidth = element.width / 2;
+        final halfHeight = element.height / 2;
+        localMinX = element.x - halfWidth;
+        localMaxX = element.x + halfWidth;
+        localMinY = element.y - halfHeight;
+        localMaxY = element.y + halfHeight;
+      } else {
+        // Top-left referenced calculation (legacy mode)
+        localMinX = element.x;
+        localMaxX = element.x + element.width;
+        localMinY = element.y;
+        localMaxY = element.y + element.height;
+      }
       print('  Width: ${element.width}, Height: ${element.height}');
     } else if (element is CircleElement) {
       localMinX = element.x - element.radius;

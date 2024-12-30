@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../drawable_element.dart';
 import '../config/diagram_config.dart';
 import '../utils/diagram_theme_builder.dart';
-import '../utils/diagram_element_builder.dart';
+import '../utils/diagram_element_factory.dart';
 import '../utils/diagnostic_helper.dart';
 
 /// A utility class that handles the assembly of all diagram elements in the correct order.
@@ -69,11 +69,11 @@ class DiagramElementsBuilder with DiagnosticHelper {
     }
 
     // Add diagram elements
-    elements.addAll(DiagramElementBuilder.createStandard(
+    elements.addAll(DiagramElementFactory.createStandard(
       value: value,
       fillColor: themeColors['elementFill']!,
       borderColor: themeColors['element']!,
-    ).buildElements());
+    ).createElements());
 
     // Add standard elements
     if (showFrame) {

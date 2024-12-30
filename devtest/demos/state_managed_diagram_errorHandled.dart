@@ -4,14 +4,53 @@ import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/widgets/di
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/widgets/diagram_controls_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_elements_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/group_diagram_element_builder.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_element_factory.dart';
 
 /// Set to true to enable diagnostic output
 const bool _DEBUG = false;
 
-/// Initialize global diagnostic settings
+/// A simple error handler for the diagram.
+/// This sets up custom Flutter error handling.
+class DiagramErrorHandler {
+  static void init() {
+    // Redirect Flutter framework errors to the console (and possibly crash reporting).
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.dumpErrorToConsole(details);
+      // Optionally integrate with external logging or crash reporting here.
+    };
+
+    // Provide a custom widget for uncaught exceptions (the red error screen).
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      bool isDebug = false;
+      // This assert block will only run in debug mode.
+      assert(() {
+        isDebug = true;
+        return true;
+      }());
+      // If in debug mode, show the normal error message.
+      if (isDebug) {
+        return ErrorWidget(details.exception);
+      }
+      // In release mode, show a friendly message.
+      return Material(
+        child: Center(
+          child: Text(
+            'Something went wrong.',
+            style: TextStyle(color: Colors.red, fontSize: 18),
+          ),
+        ),
+      );
+    };
+  }
+}
+
+/// Initialize global diagnostic settings and custom error handling
 void main() {
+  // Initialize custom error handling first
+  DiagramErrorHandler.init();
+
+  // Enable or disable additional diagnostics
   diagnosticsEnabled = _DEBUG;
+
   runApp(const MaterialApp(
     home: StateManagedDiagram2Demo(),
   ));
@@ -141,7 +180,6 @@ class StateManagedDiagram2Demo extends StatefulWidget {
 class _StateManagedDiagram2DemoState extends State<StateManagedDiagram2Demo> {
   late final StateManagedDiagram2 diagram;
   late final StateChangeHandler stateHandler;
-  double get _sliderValue => diagram.value;
   String _lastStateChange = 'No changes yet';
 
   @override

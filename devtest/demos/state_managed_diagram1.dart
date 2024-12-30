@@ -4,7 +4,7 @@ import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/widgets/di
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/widgets/diagram_controls_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_config_builder.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/state_change_handler.dart';
-import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_element_builder.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_element_factory.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_state_initializer.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagnostic_helper.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/state/diagram_state_manager.dart';
@@ -54,11 +54,13 @@ class StateManagedDiagram1 extends StateManagedDiagramBase {
 
   @override
   List<DrawableElement> createDiagramElements() {
-    return DiagramElementBuilder.createStandard(
+    List<DrawableElement> elements = [];
+    elements.addAll(DiagramElementFactory.createStandard(
       value: value,
       fillColor: const Color.fromRGBO(0, 0, 255, 0.2),
       borderColor: const Color.fromRGBO(238, 238, 238, 1),
-    ).buildElements();
+    ).createElements());
+    return elements;
   }
 }
 

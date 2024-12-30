@@ -8,6 +8,7 @@ import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/c
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/grid_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/frame_element.dart';
 import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/elements/axis_element.dart';
+import 'package:custom_paint_diagram_layer/custom_paint_diagram_layer/utils/diagram_element_factory.dart';
 
 /// Set to true to enable diagnostic output
 const bool _DEBUG = true;

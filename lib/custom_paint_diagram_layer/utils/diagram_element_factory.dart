@@ -4,15 +4,14 @@ import '../elements/circle_element.dart';
 import '../elements/text_element.dart';
 import 'diagnostic_helper.dart';
 
-/// @Deprecated('Use DiagramElementFactory instead. This class will be removed in a future version.')
-/// A utility class to build diagram elements in a structured way.
+/// A factory class for creating diagram elements in a structured way.
 /// 
-/// This builder provides a type-safe and maintainable way to create
-/// common diagram elements with customizable styling.
-@Deprecated('Use DiagramElementFactory instead. This class will be removed in a future version.')
-class DiagramElementBuilder with DiagnosticHelper {
+/// This factory provides a type-safe and maintainable way to create
+/// common diagram elements with customizable styling. It follows the factory pattern
+/// by encapsulating the creation of diagram elements with consistent configuration.
+class DiagramElementFactory with DiagnosticHelper {
   @override
-  String get diagnosticSource => 'DiagramElementBuilder';
+  String get diagnosticSource => 'DiagramElementFactory';
 
   @override
   final DiagnosticCallback? onDiagnostic;
@@ -36,8 +35,8 @@ class DiagramElementBuilder with DiagnosticHelper {
   final double radiusScale;
   final int decimalPlaces;
 
-  /// Creates a diagram element builder with customizable styling
-  const DiagramElementBuilder({
+  /// Creates a diagram element factory with customizable styling
+  const DiagramElementFactory({
     required this.value,
     this.borderColor = const Color.fromRGBO(238, 238, 238, 1),
     this.fillColor = const Color.fromRGBO(0, 0, 255, 0.2),
@@ -55,8 +54,8 @@ class DiagramElementBuilder with DiagnosticHelper {
     this.onDiagnostic,
   });
 
-  /// Creates a copy of this builder with some properties updated
-  DiagramElementBuilder copyWith({
+  /// Creates a copy of this factory with some properties updated
+  DiagramElementFactory copyWith({
     double? value,
     Color? borderColor,
     Color? fillColor,
@@ -70,7 +69,7 @@ class DiagramElementBuilder with DiagnosticHelper {
     int? decimalPlaces,
     DiagnosticCallback? onDiagnostic,
   }) {
-    return DiagramElementBuilder(
+    return DiagramElementFactory(
       value: value ?? this.value,
       borderColor: borderColor ?? this.borderColor,
       fillColor: fillColor ?? this.fillColor,
@@ -86,27 +85,27 @@ class DiagramElementBuilder with DiagnosticHelper {
     );
   }
 
-  /// Builds all diagram elements
-  List<DrawableElement> buildElements() {
-    reportInfo('buildElements', 'Building diagram elements', {
+  /// Creates all diagram elements
+  List<DrawableElement> createElements() {
+    reportInfo('createElements', 'Creating diagram elements', {
       'value': value,
       'radiusScale': radiusScale,
     });
 
     final elements = [
-      buildCircle(),
-      buildLabel(),
+      createCircle(),
+      createLabel(),
     ];
 
-    reportInfo('buildElements', 'Built ${elements.length} elements');
+    reportInfo('createElements', 'Created ${elements.length} elements');
     return elements;
   }
 
-  /// Builds just the circle element
-  CircleElement buildCircle() {
+  /// Creates the circle element
+  CircleElement createCircle() {
     final radius = value * radiusScale;
     
-    reportInfo('buildCircle', 'Building circle element', {
+    reportInfo('createCircle', 'Creating circle element', {
       'radius': radius,
       'position': 'x: $circleX, y: $circleY',
     });
@@ -120,11 +119,11 @@ class DiagramElementBuilder with DiagnosticHelper {
     );
   }
 
-  /// Builds just the label element
-  TextElement buildLabel() {
+  /// Creates the label element
+  TextElement createLabel() {
     final text = 'Value: ${(value * 100).toStringAsFixed(decimalPlaces)}%';
     
-    reportInfo('buildLabel', 'Building text element', {
+    reportInfo('createLabel', 'Creating text element', {
       'text': text,
       'position': 'x: $labelX, y: $labelY',
     });
@@ -138,13 +137,13 @@ class DiagramElementBuilder with DiagnosticHelper {
     );
   }
 
-  /// Creates a standard diagram element builder with theme colors
-  static DiagramElementBuilder createStandard({
+  /// Creates a standard diagram element factory with theme colors
+  static DiagramElementFactory createStandard({
     required double value,
     required Color fillColor,
     required Color borderColor,
   }) {
-    return DiagramElementBuilder(
+    return DiagramElementFactory(
       value: value,
       fillColor: fillColor,
       borderColor: borderColor,
@@ -156,13 +155,13 @@ class DiagramElementBuilder with DiagnosticHelper {
     );
   }
 
-  /// Creates a builder for a minimal display (just circle, no label)
-  static DiagramElementBuilder createMinimal({
+  /// Creates a factory for a minimal display (just circle, no label)
+  static DiagramElementFactory createMinimal({
     required double value,
     Color fillColor = const Color.fromRGBO(0, 0, 255, 0.2),
     DiagnosticCallback? onDiagnostic,
   }) {
-    final builder = DiagramElementBuilder(
+    final factory = DiagramElementFactory(
       value: value,
       borderColor: Colors.transparent,
       fillColor: fillColor,
@@ -170,11 +169,11 @@ class DiagramElementBuilder with DiagnosticHelper {
       onDiagnostic: onDiagnostic,
     );
 
-    builder.reportInfo('createMinimal', 'Created minimal builder', {
+    factory.reportInfo('createMinimal', 'Created minimal factory', {
       'value': value,
       'fillColor': fillColor.toString(),
     });
 
-    return builder;
+    return factory;
   }
 }

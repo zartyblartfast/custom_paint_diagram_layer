@@ -24,3 +24,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated all demo files to use `DiagramElementFactory` instead of `DiagramElementBuilder`
 - Added deprecation notices and migration guidance in code comments
+- Renamed deprecated files to include `_deprecated` suffix for clarity
